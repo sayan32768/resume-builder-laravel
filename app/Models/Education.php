@@ -10,6 +10,8 @@ class Education extends Model
 {
     use HasFactory, HasUuids;
 
+    protected $table = 'educations';
+
     public $timestamps = false;
 
     protected $fillable = [
