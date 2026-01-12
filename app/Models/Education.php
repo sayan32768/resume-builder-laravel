@@ -14,6 +14,8 @@ class Education extends Model
 
     public $timestamps = false;
 
+    protected $appends = ['dates'];
+
     protected $fillable = [
         'resumeId',
         'name',
@@ -22,7 +24,22 @@ class Education extends Model
         'startDate',
         'endDate',
         'grades',
+        'dates'
     ];
+
+    public function getDatesAttribute()
+    {
+        return [
+            'startDate' => $this->startDate,
+            'endDate' => $this->endDate,
+        ];
+    }
+
+    public function setDatesAttribute($value)
+    {
+        $this->startDate = $value['startDate'] ?? null;
+        $this->endDate = $value['endDate'] ?? null;
+    }
 
     protected $casts = [
         'grades' => 'array',

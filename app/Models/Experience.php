@@ -12,6 +12,8 @@ class Experience extends Model
 
     public $timestamps = false;
 
+    protected $appends = ['dates'];
+
     protected $fillable = [
         'resumeId',
         'companyName',
@@ -21,5 +23,20 @@ class Experience extends Model
         'endDate',
         'workDescription',
         'category',
+        'dates'
     ];
+
+    public function getDatesAttribute()
+    {
+        return [
+            'startDate' => $this->startDate,
+            'endDate' => $this->endDate,
+        ];
+    }
+
+    public function setDatesAttribute($value)
+    {
+        $this->startDate = $value['startDate'] ?? null;
+        $this->endDate = $value['endDate'] ?? null;
+    }
 }

@@ -16,20 +16,37 @@ class Resume extends Model
         'resumeType',
     ];
 
-    public function personalDetail()
+    public function replaceRelation($relation, $rows)
+    {
+        $this->$relation()->delete();
+        $this->$relation()->createMany($rows);
+    }
+
+
+    public function personalDetails()
     {
         return $this->hasOne(PersonalDetail::class, 'resumeId');
     }
 
-    public function educations()
+
+    public function educationDetails()
     {
         return $this->hasMany(Education::class, 'resumeId');
     }
 
-    public function experiences()
+
+    public function professionalExperience()
     {
-        return $this->hasMany(Experience::class, 'resumeId');
+        return $this->hasMany(Experience::class, 'resumeId')
+            ->where('category', 'professional');
     }
+
+    public function otherExperience()
+    {
+        return $this->hasMany(Experience::class, 'resumeId')
+            ->where('category', 'other');
+    }
+
 
     public function projects()
     {

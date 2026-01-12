@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreResumeRequest;
+use App\Http\Requests\UpdateResumeRequest;
+use App\Http\Resources\ResumeResource;
 use App\Models\Certification;
 use App\Models\Education;
 use App\Models\Experience;
@@ -61,156 +64,59 @@ class ResumeController extends Controller
     public function show(string $id)
     {
         $resume = Resume::with([
-            'personalDetail',
-            'educations',
-            'experiences',
+            'personalDetails',
+            'educationDetails',
+            'professionalExperience',
+            'otherExperience',
             'projects',
             'certifications',
             'skills',
         ])->findOrFail($id);
 
-        $response = [
-            'resumeTitle' => $resume->resumeTitle ?? '',
-            'resumeType'  => $resume->resumeType ?? 'Modern',
-
-            /* ---------------- Personal Details ---------------- */
-            'personalDetails' => $resume->personalDetail ? [
-                'fullName' => $resume->personalDetail->fullName ?? '',
-                'email'    => $resume->personalDetail->email ?? '',
-                'phone'    => $resume->personalDetail->phone ?? '',
-                'address'  => $resume->personalDetail->address ?? '',
-                'about'    => $resume->personalDetail->about ?? '',
-                'socials'  => $resume->personalDetail->socials ?? [],
-            ] : (object)[],
-
-            /* ---------------- Education ---------------- */
-            'educationDetails' => $resume->educations->map(fn($edu) => [
-                'name'     => $edu->name ?? '',
-                'degree'   => $edu->degree ?? '',
-                'location' => $edu->location ?? '',
-                'dates'    => [
-                    'startDate' => $edu->startDate,
-                    'endDate'   => $edu->endDate,
-                ],
-                'grades' => [
-                    'type'    => $edu->grades['type'] ?? '',
-                    'score'   => $edu->grades['score'] ?? '',
-                    'message' => $edu->grades['message'] ?? '',
-                ],
-            ])->values(),
-
-            /* ---------------- Skills ---------------- */
-            'skills' => $resume->skills
-                ? $resume->skills->skills
-                : [],
-
-            /* ---------------- Professional Experience ---------------- */
-            'professionalExperience' => $resume->experiences
-                ->where('category', 'professional')
-                ->map(fn($exp) => [
-                    'companyName'    => $exp->companyName ?? '',
-                    'companyAddress' => $exp->companyAddress ?? '',
-                    'position'       => $exp->position ?? '',
-                    'dates' => [
-                        'startDate' => $exp->startDate,
-                        'endDate'   => $exp->endDate,
-                    ],
-                    'workDescription' => $exp->workDescription ?? '',
-                ])
-                ->values(),
-
-            /* ---------------- Other Experience ---------------- */
-            'otherExperience' => $resume->experiences
-                ->where('category', 'other')
-                ->map(fn($exp) => [
-                    'companyName'    => $exp->companyName ?? '',
-                    'companyAddress' => $exp->companyAddress ?? '',
-                    'position'       => $exp->position ?? '',
-                    'dates' => [
-                        'startDate' => $exp->startDate,
-                        'endDate'   => $exp->endDate,
-                    ],
-                    'workDescription' => $exp->workDescription ?? '',
-                ])
-                ->values(),
-
-            /* ---------------- Projects ---------------- */
-            'projects' => $resume->projects->map(fn($project) => [
-                'title'        => $project->title ?? '',
-                'description'  => $project->description ?? '',
-                'extraDetails' => $project->extraDetails ?? '',
-                'links'        => $project->links ?? [],
-            ])->values(),
-
-            /* ---------------- Certifications ---------------- */
-            'certifications' => $resume->certifications->map(fn($cert) => [
-                'issuingAuthority' => $cert->issuingAuthority ?? '',
-                'title'            => $cert->title ?? '',
-                'issueDate'        => $cert->issueDate,
-                'link'             => $cert->link ?? '',
-            ])->values(),
-        ];
-
         return response()->json([
             'success' => true,
-            'data' => $response,
+            'data' => new ResumeResource($resume),
         ]);
     }
 
 
-
-    // public function index()
-    // {
-    //     $resumes = Resume::with([
-    //         'personalDetail',
-    //         'educations',
-    //         'experiences',
-    //         'projects',
-    //         'certifications',
-    //     ])->get();
-
-    //     return response()->json($resumes);
-    // }
-
-    public function create(Request $request)
+    public function create(StoreResumeRequest $request)
     {
-        try {
-            // ⚠️ TEMP: same as req.userId (replace later with auth()->id())
-            $userId = $request->input('userId');
+        $data = $request->validated();
 
-            if (!$userId) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'User ID is required',
-                ], 400);
-            }
+        // TEMP: replace later with auth()->id()
+        $userId = $request->input('userId');
 
-            $resume = Resume::create([
-                'userId' => $userId,
-                'resumeTitle' => $request->input('resumeTitle', ''),
-                'resumeType' => $request->input('resumeType'),
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Resume Created Successfully',
-                'data' => [
-                    '_id' => $resume->id,
-                    'resumeTitle' => $resume->resumeTitle,
-                    'resumeType' => $resume->resumeType,
-                ],
-            ], 201);
-        } catch (\Throwable $e) {
+        if (!$userId) {
             return response()->json([
                 'success' => false,
-                'message' => 'Some error occurred' . $e,
-            ], 500);
+                'message' => 'User ID is required',
+            ], 400);
         }
+
+        $resume = Resume::create([
+            'userId' => $userId,
+            'resumeTitle' => $data['resumeTitle'] ?? '',
+            'resumeType'  => $data['resumeType'],
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Resume Created Successfully',
+            'data' => [
+                '_id' => $resume->id,                  // Mongo compatibility
+                'resumeTitle' => $resume->resumeTitle,
+                'resumeType' => $resume->resumeType,
+            ],
+        ], 201);
     }
 
-    public function update(Request $request, string $id)
+
+    public function update(UpdateResumeRequest $request, string $id)
     {
-        // TEMP: same role as req.userId
+        $data = $request->validated();
+
+        // TEMP auth replacement
         $userId = $request->input('userId');
 
         if (!$userId) {
@@ -222,110 +128,91 @@ class ResumeController extends Controller
 
         $resume = Resume::where('id', $id)
             ->where('userId', $userId)
-            ->first();
+            ->firstOrFail();
 
-        if (!$resume) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Resume not found',
-            ], 404);
-        }
+        DB::transaction(function () use ($resume, $data) {
 
-        DB::transaction(function () use ($request, $resume) {
-
-            /* ---------------- Resume core ---------------- */
             $resume->update([
-                'resumeTitle' => $request->input('resumeTitle', ''),
-                'resumeType'  => $request->input('resumeType'),
+                'resumeTitle' => $data['resumeTitle'],
+                'resumeType' => $data['resumeType'],
             ]);
 
-            /* ---------------- Personal Details ---------------- */
-            if ($request->has('personalDetails')) {
-                PersonalDetail::updateOrCreate(
-                    ['resumeId' => $resume->id],
-                    $request->personalDetails
-                );
+            if (isset($data['personalDetails'])) {
+                $resume->personalDetails()->delete();
+                $resume->personalDetails()->create([
+                    'resumeId' => $resume->id,
+                    ...$data['personalDetails']
+                ]);
             }
 
-            /* ---------------- Education ---------------- */
-            if ($request->has('educationDetails')) {
-                Education::where('resumeId', $resume->id)->delete();
-
-                foreach ($request->educationDetails as $edu) {
-                    Education::create([
+            if (isset($data['educationDetails'])) {
+                $resume->replaceRelation(
+                    'educationDetails',
+                    collect($data['educationDetails'])->map(fn($e) => [
                         'resumeId' => $resume->id,
-                        ...$edu,
-                    ]);
-                }
-            }
-
-            /* ---------------- Skills (JSON) ---------------- */
-            if ($request->has('skills')) {
-                Skill::updateOrCreate(
-                    ['resumeId' => $resume->id],
-                    ['skills' => $request->skills]
+                        ...$e
+                    ])
                 );
             }
 
-            /* ---------------- Experience ---------------- */
-            if ($request->has('professionalExperience')) {
-                Experience::where('resumeId', $resume->id)
-                    ->where('category', 'professional')
-                    ->delete();
-
-                foreach ($request->professionalExperience as $exp) {
-                    Experience::create([
+            if (isset($data['professionalExperience'])) {
+                $resume->replaceRelation(
+                    'professionalExperience',
+                    collect($data['professionalExperience'])->map(fn($e) => [
                         'resumeId' => $resume->id,
                         'category' => 'professional',
-                        ...$exp,
-                    ]);
-                }
+                        ...$e
+                    ])
+                );
             }
 
-            if ($request->has('otherExperience')) {
-                Experience::where('resumeId', $resume->id)
-                    ->where('category', 'other')
-                    ->delete();
-
-                foreach ($request->otherExperience as $exp) {
-                    Experience::create([
+            if (isset($data['otherExperience'])) {
+                $resume->replaceRelation(
+                    'otherExperience',
+                    collect($data['otherExperience'])->map(fn($e) => [
                         'resumeId' => $resume->id,
                         'category' => 'other',
-                        ...$exp,
-                    ]);
-                }
+                        ...$e
+                    ])
+                );
             }
 
-            /* ---------------- Projects ---------------- */
-            if ($request->has('projects')) {
-                Project::where('resumeId', $resume->id)->delete();
-
-                foreach ($request->projects as $project) {
-                    Project::create([
+            if (isset($data['projects'])) {
+                $resume->replaceRelation(
+                    'projects',
+                    collect($data['projects'])->map(fn($p) => [
                         'resumeId' => $resume->id,
-                        ...$project,
-                    ]);
-                }
+                        ...$p
+                    ])
+                );
             }
 
-            /* ---------------- Certifications ---------------- */
-            if ($request->has('certifications')) {
-                Certification::where('resumeId', $resume->id)->delete();
-
-                foreach ($request->certifications as $cert) {
-                    Certification::create([
+            if (isset($data['certifications'])) {
+                $resume->replaceRelation(
+                    'certifications',
+                    collect($data['certifications'])->map(fn($c) => [
                         'resumeId' => $resume->id,
-                        ...$cert,
-                    ]);
-                }
+                        ...$c
+                    ])
+                );
+            }
+
+            if (isset($data['skills'])) {
+                $resume->skills()->updateOrCreate(
+                    ['resumeId' => $resume->id],
+                    ['skills' => $data['skills']]
+                );
             }
         });
+
+
 
         return response()->json([
             'success' => true,
             'message' => 'Resume updated successfully',
         ]);
     }
+
 
     public function destroy(Request $request, string $id)
     {
