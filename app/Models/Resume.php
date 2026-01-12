@@ -16,6 +16,12 @@ class Resume extends Model
         'resumeType',
     ];
 
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'userId');
+    }
+
+
     public function replaceRelation($relation, $rows)
     {
         $this->$relation()->delete();

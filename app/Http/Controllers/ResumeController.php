@@ -5,13 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreResumeRequest;
 use App\Http\Requests\UpdateResumeRequest;
 use App\Http\Resources\ResumeResource;
-use App\Models\Certification;
-use App\Models\Education;
-use App\Models\Experience;
-use App\Models\PersonalDetail;
-use App\Models\Project;
-use App\Models\Resume;
-use App\Models\Skill;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -19,92 +12,55 @@ class ResumeController extends Controller
 {
     public function getPastResumes(Request $request)
     {
-        $userId = $request->query('userId');
-
-        if (!$userId) {
-            return response()->json([
-                'success' => false,
-                'message' => 'User ID is required',
-            ], 400);
-        }
-
-        $resumes = Resume::where('userId', $userId)
-            ->orderBy('updated_at', 'desc')
-            ->get([
-                'id',
-                'resumeTitle',
-                'resumeType',
-                'updated_at',
-            ]);
-
-        if ($resumes->isEmpty()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No resumes found for this user',
-            ], 404);
-        }
-
-        // Match Express response keys
-        $formatted = $resumes->map(function ($resume) {
-            return [
-                '_id' => $resume->id,
-                'resumeTitle' => $resume->resumeTitle,
-                'resumeType' => $resume->resumeType,
-                'updatedAt' => $resume->updated_at,
-            ];
-        });
+        $resumes = $request->user()
+            ->resumes()
+            ->orderByDesc('updated_at')
+            ->get(['id', 'resumeTitle', 'resumeType', 'updated_at']);
 
         return response()->json([
             'success' => true,
-            'data' => $formatted,
-        ], 200);
+            'data' => $resumes->map(fn($r) => [
+                '_id' => $r->id,
+                'resumeTitle' => $r->resumeTitle,
+                'resumeType' => $r->resumeType,
+                'updatedAt' => $r->updated_at,
+            ])
+        ]);
     }
 
 
-    public function show(string $id)
+    public function show(Request $request, string $id)
     {
-        $resume = Resume::with([
-            'personalDetails',
-            'educationDetails',
-            'professionalExperience',
-            'otherExperience',
-            'projects',
-            'certifications',
-            'skills',
-        ])->findOrFail($id);
+        $resume = $request->user()
+            ->resumes()
+            ->with([
+                'personalDetails',
+                'educationDetails',
+                'professionalExperience',
+                'otherExperience',
+                'projects',
+                'certifications',
+                'skills',
+            ])
+            ->findOrFail($id);
 
-        return response()->json([
-            'success' => true,
-            'data' => new ResumeResource($resume),
-        ]);
+        return new ResumeResource($resume);
     }
 
 
     public function create(StoreResumeRequest $request)
     {
-        $data = $request->validated();
+        $user = $request->user();
 
-        // TEMP: replace later with auth()->id()
-        $userId = $request->input('userId');
-
-        if (!$userId) {
-            return response()->json([
-                'success' => false,
-                'message' => 'User ID is required',
-            ], 400);
-        }
-
-        $resume = Resume::create([
-            'userId' => $userId,
-            'resumeTitle' => $data['resumeTitle'] ?? '',
-            'resumeType'  => $data['resumeType'],
+        $resume = $user->resumes()->create([
+            'resumeTitle' => $request->resumeTitle ?? '',
+            'resumeType'  => $request->resumeType,
         ]);
 
         return response()->json([
             'success' => true,
-            'message' => 'Resume Created Successfully',
             'data' => [
-                '_id' => $resume->id,                  // Mongo compatibility
+                '_id' => $resume->id,
                 'resumeTitle' => $resume->resumeTitle,
                 'resumeType' => $resume->resumeType,
             ],
@@ -116,19 +72,10 @@ class ResumeController extends Controller
     {
         $data = $request->validated();
 
-        // TEMP auth replacement
-        $userId = $request->input('userId');
+        $resume = $request->user()
+            ->resumes()
+            ->findOrFail($id);
 
-        if (!$userId) {
-            return response()->json([
-                'success' => false,
-                'message' => 'User ID is required',
-            ], 400);
-        }
-
-        $resume = Resume::where('id', $id)
-            ->where('userId', $userId)
-            ->firstOrFail();
 
         DB::transaction(function () use ($resume, $data) {
 
@@ -138,11 +85,10 @@ class ResumeController extends Controller
             ]);
 
             if (isset($data['personalDetails'])) {
-                $resume->personalDetails()->delete();
-                $resume->personalDetails()->create([
-                    'resumeId' => $resume->id,
-                    ...$data['personalDetails']
-                ]);
+                $resume->personalDetails()->updateOrCreate(
+                    [],
+                    $data['personalDetails']
+                );
             }
 
             if (isset($data['educationDetails'])) {
@@ -216,32 +162,12 @@ class ResumeController extends Controller
 
     public function destroy(Request $request, string $id)
     {
-        // TEMP: same role as req.userId (replace with auth()->id() later)
-        $userId = $request->input('userId');
+        $resume = $request->user()
+            ->resumes()
+            ->findOrFail($id);
 
-        if (!$userId) {
-            return response()->json([
-                'success' => false,
-                'message' => 'User ID is required',
-            ], 400);
-        }
+        $resume->delete();
 
-        $resume = Resume::where('id', $id)
-            ->where('userId', $userId)
-            ->first();
-
-        if (!$resume) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Resume not found',
-            ], 404);
-        }
-
-        $resume->delete(); // 🔥 cascades to all child tables
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Resume deleted successfully',
-        ]);
+        return response()->json(['success' => true]);
     }
 }
