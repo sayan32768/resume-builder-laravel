@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\URL;
 use Illuminate\Validation\ValidationException;
 use Laravel\Sanctum\PersonalAccessToken;
 
+use Illuminate\Support\Facades\Password;
+
 class UserController extends Controller
 {
     // ME
@@ -35,6 +37,65 @@ class UserController extends Controller
     }
 
 
+    // FORGET PASSWORD
+    public function forgotPassword(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+        ]);
+
+        $status = Password::sendResetLink([
+            'email' => $request->email
+        ]);
+
+        if ($status !== Password::RESET_LINK_SENT) {
+            return response()->json([
+                'success' => false,
+                'message' => __($status)
+            ], 400);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password reset link sent'
+        ]);
+    }
+
+
+    // RESET PASSWORD
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'token' => 'required',
+            'email' => 'required|email',
+            'password' => 'required|min:8|confirmed',
+        ]);
+
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function ($user, $password) {
+                $user->update([
+                    'password' => Hash::make($password),
+                ]);
+
+                $user->tokens()->delete(); // logout everywhere
+            }
+        );
+
+        if ($status !== Password::PASSWORD_RESET) {
+            return response()->json([
+                'success' => false,
+                'message' => __($status)
+            ], 400);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password updated successfully'
+        ]);
+    }
+
+
 
     // REGISTER
     public function register(Request $request)
@@ -44,6 +105,7 @@ class UserController extends Controller
             'email' => 'required|email|unique:users',
             'password' => 'required|min:8',
             'confirmPassword' => 'required|same:password',
+            'role' => 'required|in:USER,ADMIN',
         ]);
 
         $user = User::create([
@@ -51,6 +113,7 @@ class UserController extends Controller
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
             'isVerified' => false,
+            'role' => $data['role']
         ]);
 
         $this->sendVerification($user);
@@ -61,6 +124,7 @@ class UserController extends Controller
             // 'data' => $user,
         ], 201);
     }
+
 
 
     // SEND VERIFICATION
@@ -142,6 +206,7 @@ class UserController extends Controller
             'data' => $user,
             'access_token' => $accessToken,
             'refresh_token' => $refreshToken,
+            'is_admin' => $user->role === 'ADMIN'
         ]);
     }
 

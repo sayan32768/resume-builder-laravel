@@ -10,6 +10,9 @@ Route::prefix('auth')->group(function () {
     Route::post('/login',    [UserController::class, 'login']);
     Route::get('/verify/{id}/{hash}', [UserController::class, 'verify'])
         ->name('verification.verify');
+
+    Route::post('/forgot-password', [UserController::class, 'forgotPassword']);
+    Route::post('/reset-password', [UserController::class, 'resetPassword']);
 });
 
 Route::middleware('auth:sanctum')->group(function () {

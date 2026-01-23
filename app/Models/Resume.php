@@ -14,6 +14,8 @@ class Resume extends Model
         'userId',
         'resumeTitle',
         'resumeType',
+        'accentColor',
+        'isDraft'
     ];
 
     public function user()
@@ -68,4 +70,8 @@ class Resume extends Model
     {
         return $this->hasOne(Skill::class, 'resumeId');
     }
+
+    protected $casts = [
+        'isDraft' => 'boolean',
+    ];
 }

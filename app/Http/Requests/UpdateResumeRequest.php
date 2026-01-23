@@ -10,10 +10,12 @@ class UpdateResumeRequest extends FormRequest
     {
         return [
             'resumeTitle' => 'required|string|max:255',
-            'resumeType'  => 'required|in:Classic,Modern',
+            'resumeType'  => 'required|in:Classic,Modern,Minimal,Charm,Boxed,Bold',
+            'accentColor' => 'nullable|string',
+            'isDraft' => 'nullable|boolean',
 
             'personalDetails.fullName' => ['nullable', 'regex:/^[a-zA-Z\s]+$/'],
-            'personalDetails.email' => 'nullable|email',
+            'personalDetails.email' => 'nullable|string',
             'personalDetails.phone' => 'nullable',
             'personalDetails.address' => 'nullable|string',
             'personalDetails.about' => 'nullable|string',
@@ -22,7 +24,7 @@ class UpdateResumeRequest extends FormRequest
             'personalDetails.socials.*.name' => 'in:LINKEDIN,INSTAGRAM,GITHUB',
             'personalDetails.socials.*.link' => 'nullable|url',
 
-            'educationDetails' => 'required|array|min:1',
+            'educationDetails' => 'array',
             'educationDetails.*.name' => 'nullable|string',
             'educationDetails.*.degree' => 'nullable|string',
             'educationDetails.*.location' => 'nullable|string',

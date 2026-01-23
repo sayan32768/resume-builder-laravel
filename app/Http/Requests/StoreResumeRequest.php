@@ -10,7 +10,9 @@ class StoreResumeRequest extends FormRequest
     {
         return [
             'resumeTitle' => 'nullable|string|max:255',
-            'resumeType'  => 'required|in:Classic,Modern',
+            'resumeType'  => 'required|in:Classic,Modern,Minimal,Charm,Boxed,Bold',
+            'accentColor' => 'required',
+            'isDraft' => 'required',
         ];
     }
 }

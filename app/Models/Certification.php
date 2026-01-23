@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -19,4 +20,20 @@ class Certification extends Model
         'issueDate',
         'link',
     ];
+
+    protected $casts = [
+        'issueDate' => 'date:Y-m-d',
+    ];
+
+    public function setIssueDateAttribute($value)
+    {
+        if (! $value) {
+            $this->attributes['issueDate'] = null;
+            return;
+        }
+
+        $this->attributes['issueDate'] = Carbon::parse($value)
+            ->timezone('UTC')
+            ->toDateString();
+    }
 }

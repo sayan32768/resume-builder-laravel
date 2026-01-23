@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'paths' => ['api/*', 'email/*'],
+    'paths' => ['api/*', 'auth/*', 'email/*'],
 
     'allowed_methods' => ['*'],
 

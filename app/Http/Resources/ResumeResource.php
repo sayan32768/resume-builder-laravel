@@ -12,7 +12,9 @@ class ResumeResource extends JsonResource
             'success' => true,
             'data' => [
                 'resumeTitle' => $this->resumeTitle ?? '',
-                'resumeType'  => $this->resumeType ?? 'Modern',
+                'resumeType'  => $this->resumeType ?? 'Classic',
+                'accentColor' => $this->accentColor ?? '#183D3D',
+                'isDraft' => $this->isDraft ?? true,
 
                 /* ---------------- Personal ---------------- */
                 'personalDetails' => $this->personalDetails
@@ -24,7 +26,14 @@ class ResumeResource extends JsonResource
                         'about' => $this->personalDetails->about ?? '',
                         'socials' => $this->personalDetails->socials ?? [],
                     ]
-                    : (object)[],
+                    : [
+                        'fullName' => '',
+                        'email' => '',
+                        'phone' => '',
+                        'address' => '',
+                        'about' => '',
+                        'socials' => [],
+                    ],
 
                 /* ---------------- Education ---------------- */
                 'educationDetails' => $this->educationDetails

@@ -10,12 +10,58 @@ use Illuminate\Support\Facades\DB;
 
 class ResumeController extends Controller
 {
+    private function calculateCompletion($resume): int
+    {
+        $score = 0;
+
+        if (
+            $resume->personalDetails &&
+            collect([
+                $resume->personalDetails->fullName,
+                $resume->personalDetails->email,
+                $resume->personalDetails->phone,
+                $resume->personalDetails->about,
+            ])->filter()->isNotEmpty()
+        ) {
+            $score += 20;
+        }
+
+        if ($resume->educationDetails->isNotEmpty()) {
+            $score += 15;
+        }
+
+        if (
+            $resume->skills &&
+            collect($resume->skills->toArray())
+            ->except(['id', 'resume_id', 'created_at', 'updated_at'])
+            ->filter()
+            ->isNotEmpty()
+        ) {
+            $score += 15;
+        }
+
+        if ($resume->professionalExperience->isNotEmpty()) {
+            $score += 25;
+        }
+
+        if ($resume->projects->isNotEmpty()) {
+            $score += 15;
+        }
+
+        if ($resume->certifications->isNotEmpty()) {
+            $score += 10;
+        }
+
+        return min($score, 100);
+    }
+
+
     public function getPastResumes(Request $request)
     {
         $resumes = $request->user()
             ->resumes()
             ->orderByDesc('updated_at')
-            ->get(['id', 'resumeTitle', 'resumeType', 'updated_at']);
+            ->get(['id', 'resumeTitle', 'resumeType', 'updated_at', 'accentColor', 'isDraft']);
 
         return response()->json([
             'success' => true,
@@ -24,6 +70,9 @@ class ResumeController extends Controller
                 'resumeTitle' => $r->resumeTitle,
                 'resumeType' => $r->resumeType,
                 'updatedAt' => $r->updated_at,
+                'color' => $r->accentColor,
+                'isDraft' => $r->isDraft,
+                'completion' => $this->calculateCompletion($r),
             ])
         ]);
     }
@@ -55,6 +104,8 @@ class ResumeController extends Controller
         $resume = $user->resumes()->create([
             'resumeTitle' => $request->resumeTitle ?? '',
             'resumeType'  => $request->resumeType,
+            'accentColor' => $request->accentColor,
+            'isDraft' => $request->isDraft,
         ]);
 
         return response()->json([
@@ -84,6 +135,18 @@ class ResumeController extends Controller
                 'resumeType' => $data['resumeType'],
             ]);
 
+            if (isset($data['accentColor'])) {
+                $resume->update([
+                    'accentColor' => $data['accentColor'],
+                ]);
+            }
+
+            if (isset($data['isDraft'])) {
+                $resume->update([
+                    'isDraft' => $data['isDraft'],
+                ]);
+            }
+
             if (isset($data['personalDetails'])) {
                 $resume->personalDetails()->updateOrCreate(
                     [],
@@ -95,11 +158,17 @@ class ResumeController extends Controller
                 $resume->replaceRelation(
                     'educationDetails',
                     collect($data['educationDetails'])->map(fn($e) => [
-                        'resumeId' => $resume->id,
-                        ...$e
+                        'resumeId'  => $resume->id,
+                        'name'      => $e['name'] ?? "",
+                        'degree'    => $e['degree'] ?? null,
+                        'location'  => $e['location'] ?? null,
+                        'startDate' => $e['dates']['startDate'] ?? null,
+                        'endDate'   => $e['dates']['endDate'] ?? null,
+                        'grades'    => $e['grades'] ?? null,
                     ])
                 );
             }
+
 
             if (isset($data['professionalExperience'])) {
                 $resume->replaceRelation(
