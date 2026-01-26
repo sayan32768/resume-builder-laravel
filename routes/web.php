@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\BridgeLoginController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Sanctum\PersonalAccessToken;
 use Illuminate\Http\Request;
@@ -9,23 +10,9 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::middleware(['auth', 'admin'])->get('/dashboard', function () {
-    return view('welcome');
-});
+Route::get('/login', function () {
+    return redirect('http://localhost:5173/login'); // dev
+    // return redirect('https://yourfrontend.com/login'); // prod
+})->name('login');
 
-Route::get('/auth/bridge', function (Request $request) {
-    $token = $request->query('token');
-
-    $accessToken = PersonalAccessToken::findToken($token);
-    abort_if(!$accessToken, 401);
-
-    $user = $accessToken->tokenable;
-
-    Auth::login($user);
-
-    if ($user->role !== 'ADMIN') {
-        abort(403);
-    }
-
-    return redirect('/dashboard');
-});
+Route::get('/auth/bridge', [BridgeLoginController::class, 'bridge'])->name('auth.bridge');
