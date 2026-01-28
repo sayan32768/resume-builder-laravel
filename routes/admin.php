@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\LogoutController;
+use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('admin')
@@ -12,6 +13,7 @@ Route::prefix('admin')
             ->name('admin.dashboard');
 
         Route::view('/users', 'admin.users.index')->name('admin.users');
+
         Route::view('/resumes', 'admin.resumes.index')->name('admin.resumes');
     });
 
