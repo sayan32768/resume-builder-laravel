@@ -135,7 +135,7 @@
                 @forelse($resumes as $resume)
                     <tr class="hover:bg-slate-50">
                         <td class="px-4 py-3 font-medium text-slate-900">
-                            {{ $resume->resumeTitle ?? 'Untitled Resume' }}
+                            {{ blank($resume->resumeTitle) ? 'Untitled Resume' : $resume->resumeTitle }}
                         </td>
                         <td class="px-4 py-3 text-slate-600">
                             {{ $resume->resumeType ?? '-' }}

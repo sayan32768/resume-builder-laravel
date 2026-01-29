@@ -188,7 +188,7 @@
                     <tr class="hover:bg-slate-50">
                         <td class="px-4 py-3">
                             <div class="font-semibold text-slate-900">
-                                {{ $resume->resumeTitle ?? 'Untitled Resume' }}
+                                {{ blank($resume->resumeTitle) ? 'Untitled Resume' : $resume->resumeTitle }}
                             </div>
                             <div class="text-xs text-slate-500 break-all">
                                 Resume ID: {{ $resume->id }}
