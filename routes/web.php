@@ -11,8 +11,7 @@ Route::get('/', function () {
 });
 
 Route::get('/login', function () {
-    return redirect('http://localhost:5173/login'); // dev
-    // return redirect('https://yourfrontend.com/login'); // prod
+    return redirect(config('app.frontend_url') . '/login');
 })->name('login');
 
 Route::get('/auth/bridge', [BridgeLoginController::class, 'bridge'])->name('auth.bridge');

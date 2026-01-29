@@ -11,15 +11,15 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('sessions', function (Blueprint $table) {
-            $table->uuid('user_id')->nullable()->change();
-        });
+        // Schema::table('sessions', function (Blueprint $table) {
+        //     $table->uuid('user_id')->nullable()->change();
+        // });
     }
 
     public function down()
     {
-        Schema::table('sessions', function (Blueprint $table) {
-            $table->unsignedBigInteger('user_id')->nullable()->change();
-        });
+        // Schema::table('sessions', function (Blueprint $table) {
+        //     $table->unsignedBigInteger('user_id')->nullable()->change();
+        // });
     }
 };

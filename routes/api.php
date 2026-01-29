@@ -8,11 +8,11 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('auth')->group(function () {
     Route::post('/register', [UserController::class, 'register']);
     Route::post('/login',    [UserController::class, 'login']);
-    Route::get('/verify/{id}/{hash}', [UserController::class, 'verify'])
-        ->name('verification.verify');
+    // Route::get('/verify/{id}/{hash}', [UserController::class, 'verify'])
+    //     ->name('verification.verify');
 
-    Route::post('/forgot-password', [UserController::class, 'forgotPassword']);
-    Route::post('/reset-password', [UserController::class, 'resetPassword']);
+    // Route::post('/forgot-password', [UserController::class, 'forgotPassword']);
+    // Route::post('/reset-password', [UserController::class, 'resetPassword']);
 });
 
 Route::middleware('auth:sanctum', 'updateLastSeen', 'not_blocked')->group(function () {

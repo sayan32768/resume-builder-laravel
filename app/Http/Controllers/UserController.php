@@ -113,15 +113,17 @@ class UserController extends Controller
             'fullName' => $data['fullName'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
-            'isVerified' => false,
+            // 'isVerified' => false,
+            'isVerified' => true,
             'role' => $data['role']
         ]);
 
-        $this->sendVerification($user);
+        // $this->sendVerification($user);
 
         return response()->json([
             'success' => true,
-            'message' => 'Verification Email is sent. Please follow the steps mentioned in the email',
+            // 'message' => 'Verification Email is sent. Please follow the steps mentioned in the email',
+            'message' => 'User registered successfully. Please Login using your credentials'
             // 'data' => $user,
         ], 201);
     }
