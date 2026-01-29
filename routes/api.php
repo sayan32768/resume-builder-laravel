@@ -15,7 +15,7 @@ Route::prefix('auth')->group(function () {
     Route::post('/reset-password', [UserController::class, 'resetPassword']);
 });
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware('auth:sanctum', 'updateLastSeen', 'not_blocked')->group(function () {
 
     Route::post('/auth/logout', [UserController::class, 'logout']);
     Route::get('/auth/me', [UserController::class, 'me']);

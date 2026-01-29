@@ -23,6 +23,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // Route middleware aliases
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminOnly::class,
+            'updateLastSeen' => \App\Http\Middleware\UpdateLastSeen::class,
+            'not_blocked' => \App\Http\Middleware\EnsureUserNotBlocked::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

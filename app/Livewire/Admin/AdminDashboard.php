@@ -15,11 +15,10 @@ class AdminDashboard extends Component
         $totalUsers = User::count();
         $totalResumes = Resume::count();
 
-        // $blockedUsers = User::where('is_blocked', true)->count();
-        $adminUsers = User::where('role', 'ADMIN')->count();
+        $blockedUsers = User::where('is_blocked', true)->count();
+        $loggedInUsers = User::where('isLoggedIn', true)->count();
 
         $recentUsers = User::latest()->limit(5)->get();
-        $recentResumes = Resume::latest()->with('user')->limit(5)->get();
 
 
         $startDate = now()->subDays(6)->startOfDay();
@@ -44,11 +43,9 @@ class AdminDashboard extends Component
         return view('livewire.admin.admin-dashboard', [
             'totalUsers' => $totalUsers,
             'totalResumes' => $totalResumes,
-            // 'blockedUsers' => $blockedUsers,
-            'adminUsers' => $adminUsers,
+            'blockedUsers' => $blockedUsers,
+            'loggedInUsers' => $loggedInUsers,
             'recentUsers' => $recentUsers,
-            'recentResumes' => $recentResumes,
-
             'userJoinLabels' => $labels,
             'userJoinData' => $data,
         ]);

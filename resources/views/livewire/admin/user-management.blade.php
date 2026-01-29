@@ -11,12 +11,157 @@
             </div>
 
             <div class="flex items-center gap-2">
-                <button
+
+
+                @php
+                    // only the filter inputs
+                    $filterTargets = 'role,status,joinedFrom,joinedTo,sortBy,sortDir,resetFilters';
+                @endphp
+
+                <div class="relative z-[9999]">
+                    <!-- FILTER BUTTON -->
+                    <button type="button" wire:click="toggleFilters"
+                        class="inline-flex items-center gap-2 px-4 py-2.5 text-sm rounded-md border border-slate-200
+        bg-white text-slate-700 hover:bg-slate-50 transition">
+
+                        <x-lucide-filter class="w-4 h-4" />
+                        <span>Filters</span>
+
+                        <!-- loader ONLY when dropdown toggles -->
+                        <svg wire:loading wire:click="toggleFilters" class="w-4 h-4 animate-spin text-slate-500"
+                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        </svg>
+
+                        @if ($this->hasActiveFilters)
+                            <span
+                                class="ml-1 px-2 py-0.5 text-[11px] rounded-full bg-brand/10 text-brand font-semibold">
+                                Active
+                            </span>
+                        @endif
+                    </button>
+
+                    <!-- DROPDOWN -->
+                    @if ($showFilters)
+                        <div
+                            class="absolute right-0 top-full mt-2 w-[340px]
+            bg-white border border-slate-200 shadow-lg rounded-xl p-4">
+
+                            <!-- overlay loader INSIDE dropdown -->
+                            <div wire:loading wire:target="{{ $filterTargets }}"
+                                class="absolute inset-0 z-50 rounded-xl bg-white/70 backdrop-blur-[1px]
+                flex items-center justify-center text-center h-full">
+                                <div
+                                    class="inline-flex items-center justify-center gap-2 text-sm text-slate-600 font-medium">
+                                    <svg class="w-4 h-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                        viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10"
+                                            stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor"
+                                            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                    </svg>
+                                    Applying...
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="text-sm font-semibold text-slate-900">Filters</div>
+
+                                <button type="button" wire:click="$set('showFilters', false)"
+                                    class="text-slate-400 hover:text-slate-700">
+                                    <x-lucide-x class="w-4 h-4" />
+                                </button>
+                            </div>
+
+                            <div class="space-y-4">
+
+                                <!-- Role -->
+                                <div>
+                                    <label class="text-xs font-medium text-slate-600">Role</label>
+                                    <select wire:model.live="role"
+                                        class="mt-1 w-full rounded-lg border border-slate-200 text-sm px-3 py-2">
+                                        <option value="">All Roles</option>
+                                        <option value="user">USER</option>
+                                        <option value="admin">ADMIN</option>
+                                    </select>
+                                </div>
+
+                                <!-- Status -->
+                                <div>
+                                    <label class="text-xs font-medium text-slate-600">Status</label>
+                                    <select wire:model.live="status"
+                                        class="mt-1 w-full rounded-lg border border-slate-200 text-sm px-3 py-2">
+                                        <option value="">All</option>
+                                        <option value="active">Active</option>
+                                        <option value="blocked">Blocked</option>
+                                    </select>
+                                </div>
+
+                                <!-- Joined Date -->
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="text-xs font-medium text-slate-600">Joined From</label>
+                                        <input type="date" wire:model.live="joinedFrom"
+                                            class="mt-1 w-full rounded-lg border border-slate-200 text-sm px-3 py-2" />
+                                    </div>
+
+                                    <div>
+                                        <label class="text-xs font-medium text-slate-600">Joined To</label>
+                                        <input type="date" wire:model.live="joinedTo"
+                                            class="mt-1 w-full rounded-lg border border-slate-200 text-sm px-3 py-2" />
+                                    </div>
+                                </div>
+
+                                <!-- Sort -->
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="text-xs font-medium text-slate-600">Sort By</label>
+                                        <select wire:model.live="sortBy"
+                                            class="mt-1 w-full rounded-lg border border-slate-200 text-sm px-3 py-2">
+                                            <option value="created_at">Date Joined</option>
+                                            <option value="fullName">Name</option>
+                                            <option value="role">Role</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label class="text-xs font-medium text-slate-600">Order</label>
+                                        <select wire:model.live="sortDir"
+                                            class="mt-1 w-full rounded-lg border border-slate-200 text-sm px-3 py-2">
+                                            <option value="desc">Desc</option>
+                                            <option value="asc">Asc</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Buttons -->
+                                <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+
+                                    <!-- Reset (no spinner now) -->
+                                    <button type="button" wire:click="resetFilters"
+                                        class="px-3 py-2 rounded-lg border border-slate-200 text-slate-700 text-sm hover:bg-slate-50">
+                                        Reset
+                                    </button>
+
+                                </div>
+
+                            </div>
+                        </div>
+                    @endif
+                </div>
+
+
+
+
+                <!-- ADD NEW USER BUTTON -->
+                {{-- <button
                     class="w-38 inline-flex items-center gap-2 px-4 py-2.5 text-sm rounded-md
            bg-black text-white hover:bg-gray-800 transition">
                     <x-lucide-user-plus class="w-4 h-4" />
                     <span>Add New User</span>
-                </button>
+                </button> --}}
 
             </div>
         </div>
@@ -53,6 +198,7 @@
         </div>
 
 
+
         @if (session('success'))
             <div class="p-3 rounded-lg bg-green-50 text-green-700 text-sm border border-green-200">
                 {{ session('success') }}
@@ -64,6 +210,8 @@
                 {{ session('error') }}
             </div>
         @endif
+
+
 
         <!-- User Table -->
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
@@ -89,7 +237,8 @@
                                         {{ strtoupper(substr($user->fullName ?? $user->email, 0, 1)) }}
                                     </div>
                                     <div>
-                                        <div class="font-medium text-slate-900">{{ $user->fullName ?? 'Unnamed' }}</div>
+                                        <div class="font-medium text-slate-900">{{ $user->fullName ?? 'Unnamed' }}
+                                        </div>
                                         <div class="text-xs text-slate-500">{{ $user->email }}</div>
                                     </div>
                                 </div>
@@ -109,22 +258,61 @@
                                 <span
                                     class="px-2 py-1 text-xs rounded-full
                             {{ $user->is_blocked ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700' }}">
-                                    {{ $user->is_blocked ? 'Suspended' : 'Active' }}
+                                    {{ $user->is_blocked ? 'Blocked' : 'Active' }}
                                 </span>
                             </td>
 
                             <td class="px-4 py-3 text-right">
                                 <div class="flex items-center justify-end gap-3">
-                                    <!-- View -->
-                                    <button
+
+                                    <!-- Block/Unblock -->
+                                    <button wire:click="toggleBlock('{{ $user->id }}')"
+                                        wire:loading.attr="disabled" wire:target="toggleBlock('{{ $user->id }}')"
+                                        class="p-2 rounded-md transition
+        {{ $user->is_blocked
+            ? 'text-green-600 hover:text-green-700 hover:bg-green-50'
+            : 'text-amber-600 hover:text-amber-700 hover:bg-amber-50' }}"
+                                        title="{{ $user->is_blocked ? 'Unblock user' : 'Block user' }}">
+
+                                        @if ($user->is_blocked)
+                                            <x-lucide-check wire:loading.remove
+                                                wire:target="toggleBlock('{{ $user->id }}')" class="w-4 h-4" />
+                                        @else
+                                            <x-lucide-ban wire:loading.remove
+                                                wire:target="toggleBlock('{{ $user->id }}')" class="w-4 h-4" />
+                                        @endif
+
+                                        <!-- loader -->
+                                        <svg wire:loading wire:target="toggleBlock('{{ $user->id }}')"
+                                            class="w-4 h-4 animate-spin" xmlns="http://www.w3.org/2000/svg"
+                                            fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor"
+                                                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                        </svg>
+                                    </button>
+
+                                    {{-- <!-- Show all resumes button -->
+                                    <a href="{{ route('admin.users.index', $user->id) }}"
+                                        class="p-2 rounded-md text-slate-400 hover:text-slate-700
+        hover:bg-slate-100 transition"
+                                        title="View user's resumes">
+                                        <x-lucide-file-text class="w-4 h-4" />
+                                    </a> --}}
+
+
+                                    <a href="{{ route('admin.users.show', $user->id) }}"
                                         class="p-2 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition"
                                         title="View user">
                                         <x-lucide-eye class="w-4 h-4" />
-                                    </button>
+                                    </a>
+
 
                                     <!-- Delete -->
                                     <button wire:click="confirmDelete('{{ $user->id }}')"
-                                        wire:loading.attr="disabled" wire:target="confirmDelete('{{ $user->id }}')"
+                                        wire:loading.attr="disabled"
+                                        wire:target="confirmDelete('{{ $user->id }}')"
                                         class="p-2 rounded-md text-slate-400 hover:text-red-600 hover:bg-red-50 transition
            disabled:opacity-50 disabled:cursor-not-allowed"
                                         title="Delete user">
@@ -143,12 +331,6 @@
                                                 d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
                                         </svg>
                                     </button>
-
-
-                                    {{-- <div class="text-red-500 font-bold">
-                                        LIVEWIRE TEST: {{ now() }}
-                                    </div> --}}
-
                                 </div>
 
                             </td>
@@ -232,6 +414,4 @@
             </div>
         </div>
     @endif
-
-
 </div>

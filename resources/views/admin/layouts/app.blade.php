@@ -37,43 +37,47 @@
                         </a>
 
                         {{-- Users --}}
-                        <a href="{{ route('admin.users') }}"
+                        <a href="{{ route('admin.users.index') }}"
                             class="group flex items-center gap-3 px-3 py-3 rounded-md transition
-       {{ request()->routeIs('admin.users')
+       {{ request()->routeIs('admin.users.*')
            ? 'bg-brand/10 text-brand font-semibold'
            : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">
                             <x-lucide-users
                                 class="w-5 h-5 transition
-            {{ request()->routeIs('admin.users') ? 'text-brand' : 'text-slate-400 group-hover:text-slate-600' }}" />
+            {{ request()->routeIs('admin.users.*') ? 'text-brand' : 'text-slate-400 group-hover:text-slate-600' }}" />
                             <span>Users</span>
                         </a>
 
                         {{-- Resumes --}}
-                        <a href="{{ route('admin.resumes') }}"
+                        <a href="{{ route('admin.resumes.index') }}"
                             class="group flex items-center gap-3 px-3 py-3 rounded-md transition
-       {{ request()->routeIs('admin.resumes')
+       {{ request()->routeIs('admin.resumes.*')
            ? 'bg-brand/10 text-brand font-semibold'
            : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">
                             <x-lucide-file-text
                                 class="w-5 h-5 transition
-            {{ request()->routeIs('admin.resumes') ? 'text-brand' : 'text-slate-400 group-hover:text-slate-600' }}" />
+            {{ request()->routeIs('admin.resumes.*') ? 'text-brand' : 'text-slate-400 group-hover:text-slate-600' }}" />
                             <span>Resumes</span>
                         </a>
 
                         {{-- Templates --}}
-                        <a href="{{ route('admin.resumes') }}"
-                            class="group flex items-center gap-3 px-3 py-3 rounded-md transition text-slate-700 hover:bg-slate-100 hover:text-slate-900">
+                        <a href="{{ route('admin.templates.index') }}"
+                            class="group flex items-center gap-3 px-3 py-3 rounded-md transition
+       {{ request()->routeIs('admin.templates.*')
+           ? 'bg-brand/10 text-brand font-semibold'
+           : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">
                             <x-lucide-layout-template
-                                class="w-5 h-5 text-slate-400 group-hover:text-slate-600 transition" />
+                                class="w-5 h-5 transition
+            {{ request()->routeIs('admin.templates.*') ? 'text-brand' : 'text-slate-400 group-hover:text-slate-600' }}" />
                             <span>Templates</span>
                         </a>
 
                         {{-- Settings --}}
-                        <a href="{{ route('admin.resumes') }}"
+                        {{-- <a href="{{ route('admin.resumes.index') }}"
                             class="group flex items-center gap-3 px-3 py-3 rounded-md transition text-slate-700 hover:bg-slate-100 hover:text-slate-900">
                             <x-lucide-settings class="w-5 h-5 text-slate-400 group-hover:text-slate-600 transition" />
                             <span>Settings</span>
-                        </a>
+                        </a> --}}
 
                     </nav>
 
@@ -133,11 +137,12 @@
                     <div class="flex gap-4 items-center">
                         <form action="" method="POST">
                             @csrf
-                            <button
-                                class="px-3 py-2.5 bg-brand text-white rounded-md hover:bg-brand/90 text-sm flex items-center gap-2">
+                            <a href="{{ route('admin.reports.export') }}"
+                                class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-brand text-white text-sm font-semibold hover:bg-brand/90 transition">
                                 <x-lucide-download class="w-4 h-4" />
-                                <span>Export Report</span>
-                            </button>
+                                Export Report
+                            </a>
+
                         </form>
 
                     </div>

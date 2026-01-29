@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 
 use App\Models\User;
+use App\Models\UserSession;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Validation\ValidationException;
@@ -187,12 +188,31 @@ class UserController extends Controller
             ], 403);
         }
 
+        if ($user->is_blocked) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your account has been blocked. Please contact support.',
+            ], 403);
+        }
+
 
         $user->tokens()->delete();
 
 
-        $accessToken = $user->createToken('access', ['access'])->plainTextToken;
-        $refreshToken = $user->createToken('refresh', ['refresh'])->plainTextToken;
+        $accessTokenObj = $user->createToken('access', ['access']);
+        $refreshTokenObj = $user->createToken('refresh', ['refresh']);
+
+        $accessToken = $accessTokenObj->plainTextToken;
+        $refreshToken = $refreshTokenObj->plainTextToken;
+
+        UserSession::create([
+            'user_id' => $user->id,
+            'access_token_id' => $accessTokenObj->accessToken->id,
+            'refresh_token_id' => $refreshTokenObj->accessToken->id,
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+            'last_seen_at' => now(),
+        ]);
 
 
         $user->update([
@@ -238,6 +258,7 @@ class UserController extends Controller
     public function logout(Request $request)
     {
         $request->user()->tokens()->delete();
+        UserSession::where('user_id', $request->user()->id)->delete();
         $request->user()->update(['isLoggedIn' => false]);
 
         return response()->json(['success' => true]);

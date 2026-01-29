@@ -41,23 +41,19 @@
         </div>
 
         <!-- PDF Downloads (dummy stat for now) -->
-        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+        {{-- <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
             <div class="flex items-start justify-between">
                 <div class="h-10 w-10 rounded-lg bg-teal-50 flex items-center justify-center">
                     <x-lucide-file-down class="w-5 h-5 text-teal-600" />
                 </div>
 
-                {{-- <span
-                class="inline-flex items-center gap-1 rounded-full bg-green-100 text-green-700 px-2 py-1 text-xs font-semibold">
-                ↗ +15%
-            </span> --}}
             </div>
 
             <div class="mt-4 text-sm text-slate-500 font-medium">PDF Downloads</div>
             <div class="mt-1 text-2xl font-bold text-slate-900">
                 {{ number_format($pdfDownloads ?? 0) }}
             </div>
-        </div>
+        </div> --}}
 
         <!-- Active Users -->
         <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
@@ -72,12 +68,30 @@
             </span> --}}
             </div>
 
-            <div class="mt-4 text-sm text-slate-500 font-medium">Active Users (24h)</div>
+            <div class="mt-4 text-sm text-slate-500 font-medium">Logged In Users</div>
             <div class="mt-1 text-2xl font-bold text-slate-900">
-                {{ number_format($activeUsers24h ?? 0) }}
+                {{ number_format($loggedInUsers ?? 0) }}
             </div>
         </div>
 
+        <!-- Blocked Users -->
+        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+            <div class="flex items-start justify-between">
+                <div class="h-10 w-10 rounded-lg bg-teal-50 flex items-center justify-center">
+                    <x-lucide-user-x class="w-5 h-5 text-teal-600" />
+                </div>
+
+                {{-- <span
+                class="inline-flex items-center gap-1 rounded-full bg-green-100 text-green-700 px-2 py-1 text-xs font-semibold">
+                ↗ +5%
+            </span> --}}
+            </div>
+
+            <div class="mt-4 text-sm text-slate-500 font-medium">Blocked Users</div>
+            <div class="mt-1 text-2xl font-bold text-slate-900">
+                {{ number_format($blockedUsers ?? 0) }}
+            </div>
+        </div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
@@ -226,7 +240,7 @@
                 </div>
 
                 <div class="mt-6 text-center">
-                    <a href="{{ route('admin.users') }}"
+                    <a href="{{ route('admin.users.index') }}"
                         class="inline-block px-4 pt-2 text-teal-600 text-sm font-semibold rounded-md">
                         View All Users
                     </a>

@@ -21,6 +21,7 @@ class User extends Authenticatable
         'password',
         'isLoggedIn',
         'isVerified',
+        'is_blocked',
     ];
 
     public function isAdmin()
@@ -40,6 +41,7 @@ class User extends Authenticatable
     protected $casts = [
         'password' => 'hashed',
         'isVerified' => 'boolean',
-        'isLoggedIn' => 'boolean'
+        'isLoggedIn' => 'boolean',
+        'is_blocked' => 'boolean',
     ];
 }
