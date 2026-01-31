@@ -23,12 +23,11 @@ class Templates extends Component
             ->values();
 
         $usageCounts = Resume::query()
-            ->selectRaw('resumeType, COUNT(*) as total')
-            ->groupBy('resumeType')
+            ->selectRaw('"resumes"."resumeType", COUNT(*) as total')
+            ->groupByRaw('"resumes"."resumeType"')
             ->pluck('total', 'resumeType')
             ->mapWithKeys(fn($total, $type) => [strtolower($type) => $total])
             ->toArray();
-
 
         return view('livewire.admin.templates', [
             'templates' => $templates,
