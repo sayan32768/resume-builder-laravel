@@ -11,7 +11,8 @@ class ReportController extends Controller
 {
     public function exportCsv(): StreamedResponse
     {
-        $fileName = 'admin-report-' . now()->format('Y-m-d_H-i') . '.csv';
+        $fileName = 'admin-report-' . now()->timezone('Asia/Kolkata')->format('Y-m-d_H-i') . '.csv';
+
 
         return response()->streamDownload(function () {
 

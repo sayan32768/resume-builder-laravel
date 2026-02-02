@@ -76,7 +76,7 @@
                                     class="mt-1 w-full rounded-lg border border-slate-200 text-sm px-3 py-2">
                                     <option value="">All Templates</option>
                                     @foreach ($resumeTypes as $type)
-                                        <option value="{{ $type }}">{{ strtoupper($type) }}</option>
+                                        <option value="{{ $type }}">{{ $type }}</option>
                                     @endforeach
                                 </select>
                             </div>

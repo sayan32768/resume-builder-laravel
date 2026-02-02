@@ -5,6 +5,7 @@ namespace App\Livewire\Admin;
 use App\Models\Resume;
 use App\Models\User;
 use App\Models\UserSession;
+use App\Services\AuditLogger;
 use Jenssegers\Agent\Agent;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -24,12 +25,43 @@ class UserDetails extends Component
     {
         $resume = Resume::findOrFail($resumeId);
 
-        dd($resume->userId, $this->user->id);
+        // SECURITY CHECK: resume must belong to current profile user
+        if ((string) $resume->userId !== (string) $this->user->id) {
 
-        if ($resume->userId !== $this->user->id) {
+            // log attempt
+            AuditLogger::log(
+                'ADMIN_RESUME_DELETE_DENIED',
+                $resume,
+                ['resume_user_id' => $resume->userId],
+                null,
+                [
+                    'viewing_user_id' => (string) $this->user->id,
+                    'resume_id' => (string) $resume->id,
+                ]
+            );
+
             session()->flash('error', 'Resume does not belong to this user.');
             return;
         }
+
+        // save before snapshot
+        $before = [
+            'id' => (string) $resume->id,
+            'userId' => (string) $resume->userId,
+            'resumeType' => $resume->resumeType ?? null,
+            'created_at' => optional($resume->created_at)->toDateTimeString(),
+        ];
+
+        // log BEFORE deleting
+        AuditLogger::log(
+            'ADMIN_RESUME_DELETED',
+            $resume,
+            $before,
+            null,
+            [
+                'profile_user_id' => (string) $this->user->id,
+            ]
+        );
 
         $resume->delete();
 
@@ -37,7 +69,6 @@ class UserDetails extends Component
 
         $this->resetPage();
     }
-
 
     public function render()
     {

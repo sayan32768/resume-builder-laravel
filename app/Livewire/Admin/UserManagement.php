@@ -5,6 +5,8 @@ namespace App\Livewire\Admin;
 use Carbon\Carbon;
 use App\Models\User;
 use App\Models\UserSession;
+use App\Services\AuditLogger;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -87,27 +89,101 @@ class UserManagement extends Component
     }
 
 
+    public function toggleAdmin(string $userId)
+    {
+        $auth = auth()->user();
+
+        // Optional: prevent non-admins from using
+        if (!$auth || ($auth->role ?? 'user') !== 'ADMIN') {
+            session()->flash('error', 'Unauthorized.');
+            return;
+        }
+
+        // Prevent changing self role (recommended)
+        if ($auth->id === $userId) {
+            session()->flash('error', 'You cannot change your own role.');
+            return;
+        }
+
+        $user = \App\Models\User::findOrFail($userId);
+
+        $before = [
+            'role' => $user->role,
+        ];
+
+        // Toggle role
+        $user->role = ($user->role === 'ADMIN') ? 'USER' : 'ADMIN';
+        $user->save();
+
+        $after = [
+            'role' => $user->role,
+        ];
+
+        AuditLogger::log(
+            $user->role === 'ADMIN' ? 'ADMIN_USER_GRANTED_ADMIN' : 'ADMIN_USER_REVOKED_ADMIN',
+            $user,
+            $before,
+            $after
+        );
+
+        session()->flash('success', 'User role updated successfully.');
+    }
+
+
+
     public function toggleBlock(string $userId): void
     {
         $user = User::findOrFail($userId);
 
-        if ($user->id === auth()->id() || $user->role === 'ADMIN') {
+        if ($user->id === auth()->id() || $user->role === "ADMIN") {
+
+            AuditLogger::log('ADMIN_ACTION_DENIED', $user, null, null, [
+                'reason' => 'Cannot block self/admin',
+                'action' => 'toggleBlock',
+            ]);
+
             session()->flash('error', 'Action not allowed.');
             return;
         }
 
-        $user->is_blocked = ! $user->is_blocked;
-        $user->save();
+        DB::transaction(function () use ($user) {
 
-        if ($user->is_blocked) {
-            $user->tokens()->delete();
-            UserSession::where('user_id', $user->id)->delete();
-            $user->isLoggedIn = false;
+            $before = [
+                'is_blocked' => (bool) $user->is_blocked,
+                'isLoggedIn' => (bool) $user->isLoggedIn,
+            ];
+
+            $user->is_blocked = ! $user->is_blocked;
+
+            if ($user->is_blocked) {
+                $user->tokens()->delete();
+                UserSession::where('user_id', $user->id)->delete();
+                $user->isLoggedIn = false;
+            }
+
             $user->save();
-            session()->flash('success', 'User blocked and logged out from all devices.');
-        } else {
-            session()->flash('success', 'User unblocked.');
-        }
+
+            $after = [
+                'is_blocked' => (bool) $user->is_blocked,
+                'isLoggedIn' => (bool) $user->isLoggedIn,
+            ];
+
+            AuditLogger::log(
+                $user->is_blocked ? 'ADMIN_USER_BLOCKED' : 'ADMIN_USER_UNBLOCKED',
+                $user,
+                $before,
+                $after,
+                [
+                    'target_label' => $user->fullName ?? $user->email,
+                    'target_email' => $user->email,
+                    'tokens_deleted' => $user->is_blocked,
+                    'sessions_deleted' => $user->is_blocked,
+                    'forced_logout' => $user->is_blocked,
+                ]
+            );
+        });
+
+        session()->flash('success', $user->is_blocked ? 'User blocked and logged out from all devices.' : 'User unblocked.');
     }
 
 
@@ -148,6 +224,15 @@ class UserManagement extends Component
             return;
         }
 
+        $before = $user->toArray();
+        unset($before['password']);
+
+        AuditLogger::log('ADMIN_USER_DELETED', $user, $before, null, [
+            'deleted_from' => 'user-management',
+            'target_label' => $user->fullName ?? $user->email,
+            'target_email' => $user->email,
+        ]);
+
         $user->delete();
 
         session()->flash('success', 'User deleted successfully.');
@@ -161,7 +246,8 @@ class UserManagement extends Component
             ->when($this->search, function ($q) {
                 $q->where(function ($qq) {
                     $qq->where('fullName', 'like', '%' . $this->search . '%')
-                        ->orWhere('email', 'like', '%' . $this->search . '%');
+                        ->orWhere('email', 'like', '%' . $this->search . '%')
+                        ->orWhere('id', 'like', '%' . $this->search . '%');
                 });
             })
             ->when($this->role, fn($q) => $q->where('role', $this->role))

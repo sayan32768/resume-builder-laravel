@@ -173,7 +173,7 @@
                 <x-lucide-search class="w-4 h-4" />
             </div>
 
-            <input wire:model.live.debounce.300ms="search" type="text" placeholder="Search by name, email..."
+            <input wire:model.live.debounce.300ms="search" type="text" placeholder="Search by name, email, id..."
                 class="w-full rounded-lg border-2 border-slate-300 bg-white py-3 pl-10 pr-6 text-sm
            focus:outline-none focus:border-brand focus:ring-2 focus:border-0 focus:ring-brand/30" />
 
@@ -237,8 +237,14 @@
                                         {{ strtoupper(substr($user->fullName ?? $user->email, 0, 1)) }}
                                     </div>
                                     <div>
-                                        <div class="font-medium text-slate-900">{{ $user->fullName ?? 'Unnamed' }}
+                                        <div class="font-medium text-slate-900">
+                                            {{ $user->fullName ?? 'Unnamed' }}
+                                            @if (auth()->id() === $user->id)
+                                                <span>(You)</span>
+                                            @endif
                                         </div>
+
+
                                         <div class="text-xs text-slate-500">{{ $user->email }}</div>
                                     </div>
                                 </div>
@@ -266,32 +272,75 @@
                                 <div class="flex items-center justify-end gap-3">
 
                                     <!-- Block/Unblock -->
-                                    <button wire:click="toggleBlock('{{ $user->id }}')"
-                                        wire:loading.attr="disabled" wire:target="toggleBlock('{{ $user->id }}')"
-                                        class="p-2 rounded-md transition
+                                    @if (auth()->id() !== $user->id)
+                                        <button wire:click="toggleBlock('{{ $user->id }}')"
+                                            wire:loading.attr="disabled"
+                                            wire:target="toggleBlock('{{ $user->id }}')"
+                                            class="p-2 rounded-md transition
         {{ $user->is_blocked
             ? 'text-green-600 hover:text-green-700 hover:bg-green-50'
             : 'text-amber-600 hover:text-amber-700 hover:bg-amber-50' }}"
-                                        title="{{ $user->is_blocked ? 'Unblock user' : 'Block user' }}">
+                                            title="{{ $user->is_blocked ? 'Unblock user' : 'Block user' }}">
 
-                                        @if ($user->is_blocked)
-                                            <x-lucide-check wire:loading.remove
-                                                wire:target="toggleBlock('{{ $user->id }}')" class="w-4 h-4" />
-                                        @else
-                                            <x-lucide-ban wire:loading.remove
-                                                wire:target="toggleBlock('{{ $user->id }}')" class="w-4 h-4" />
-                                        @endif
+                                            @if ($user->is_blocked)
+                                                <x-lucide-check wire:loading.remove
+                                                    wire:target="toggleBlock('{{ $user->id }}')"
+                                                    class="w-4 h-4" />
+                                            @else
+                                                <x-lucide-ban wire:loading.remove
+                                                    wire:target="toggleBlock('{{ $user->id }}')"
+                                                    class="w-4 h-4" />
+                                            @endif
 
-                                        <!-- loader -->
-                                        <svg wire:loading wire:target="toggleBlock('{{ $user->id }}')"
-                                            class="w-4 h-4 animate-spin" xmlns="http://www.w3.org/2000/svg"
-                                            fill="none" viewBox="0 0 24 24">
-                                            <circle class="opacity-25" cx="12" cy="12" r="10"
-                                                stroke="currentColor" stroke-width="4"></circle>
-                                            <path class="opacity-75" fill="currentColor"
-                                                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                                        </svg>
-                                    </button>
+                                            <!-- loader -->
+                                            <svg wire:loading wire:target="toggleBlock('{{ $user->id }}')"
+                                                class="w-4 h-4 animate-spin" xmlns="http://www.w3.org/2000/svg"
+                                                fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                    stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor"
+                                                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                            </svg>
+                                        </button>
+                                    @endif
+
+
+                                    <!-- Make Admin / Remove Admin -->
+                                    @if (auth()->user()?->role === 'ADMIN' && auth()->id() !== $user->id)
+                                        <button wire:click="toggleAdmin('{{ $user->id }}')"
+                                            wire:loading.attr="disabled"
+                                            wire:target="toggleAdmin('{{ $user->id }}')"
+                                            class="p-2 rounded-md transition
+        {{ ($user->role ?? 'user') === 'admin'
+            ? 'text-purple-600 hover:text-purple-700 hover:bg-purple-50'
+            : 'text-blue-600 hover:text-blue-700 hover:bg-blue-50' }}
+        disabled:opacity-50 disabled:cursor-not-allowed"
+                                            title="{{ ($user->role ?? 'USER') === 'ADMIN' ? 'Remove admin privileges' : 'Give admin privileges' }}">
+                                            {{-- icon --}}
+                                            @if (($user->role ?? 'USER') === 'ADMIN')
+                                                <x-lucide-shield-off wire:loading.remove
+                                                    wire:target="toggleAdmin('{{ $user->id }}')"
+                                                    class="w-4 h-4" />
+                                            @else
+                                                <x-lucide-shield wire:loading.remove
+                                                    wire:target="toggleAdmin('{{ $user->id }}')"
+                                                    class="w-4 h-4" />
+                                            @endif
+
+                                            {{-- spinner --}}
+                                            <svg wire:loading wire:target="toggleAdmin('{{ $user->id }}')"
+                                                class="w-4 h-4 animate-spin" xmlns="http://www.w3.org/2000/svg"
+                                                fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                    stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor"
+                                                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                            </svg>
+                                        </button>
+                                    @endif
+
+
+
 
                                     {{-- <!-- Show all resumes button -->
                                     <a href="{{ route('admin.users.index', $user->id) }}"
@@ -309,28 +358,31 @@
                                     </a>
 
 
+
                                     <!-- Delete -->
-                                    <button wire:click="confirmDelete('{{ $user->id }}')"
-                                        wire:loading.attr="disabled"
-                                        wire:target="confirmDelete('{{ $user->id }}')"
-                                        class="p-2 rounded-md text-slate-400 hover:text-red-600 hover:bg-red-50 transition
+                                    @if (auth()->id() !== $user->id)
+                                        <button wire:click="confirmDelete('{{ $user->id }}')"
+                                            wire:loading.attr="disabled"
+                                            wire:target="confirmDelete('{{ $user->id }}')"
+                                            class="p-2 rounded-md text-slate-400 hover:text-red-600 hover:bg-red-50 transition
            disabled:opacity-50 disabled:cursor-not-allowed"
-                                        title="Delete user">
+                                            title="Delete user">
 
-                                        <!-- icon -->
-                                        <x-lucide-trash-2 wire:loading.remove
-                                            wire:target="confirmDelete('{{ $user->id }}')" class="w-4 h-4" />
+                                            <!-- icon -->
+                                            <x-lucide-trash-2 wire:loading.remove
+                                                wire:target="confirmDelete('{{ $user->id }}')" class="w-4 h-4" />
 
-                                        <!-- spinner -->
-                                        <svg wire:loading wire:target="confirmDelete('{{ $user->id }}')"
-                                            class="w-4 h-4 animate-spin" xmlns="http://www.w3.org/2000/svg"
-                                            fill="none" viewBox="0 0 24 24">
-                                            <circle class="opacity-25" cx="12" cy="12" r="10"
-                                                stroke="currentColor" stroke-width="4"></circle>
-                                            <path class="opacity-75" fill="currentColor"
-                                                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                                        </svg>
-                                    </button>
+                                            <!-- spinner -->
+                                            <svg wire:loading wire:target="confirmDelete('{{ $user->id }}')"
+                                                class="w-4 h-4 animate-spin" xmlns="http://www.w3.org/2000/svg"
+                                                fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                    stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor"
+                                                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                            </svg>
+                                        </button>
+                                    @endif
                                 </div>
 
                             </td>

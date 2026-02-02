@@ -22,7 +22,7 @@ class UpdateResumeRequest extends FormRequest
 
             'personalDetails.socials' => 'array',
             'personalDetails.socials.*.name' => 'in:LINKEDIN,INSTAGRAM,GITHUB',
-            'personalDetails.socials.*.link' => 'nullable|url',
+            'personalDetails.socials.*.link' => 'nullable|string',
 
             'educationDetails' => 'array',
             'educationDetails.*.name' => 'nullable|string',
@@ -58,13 +58,13 @@ class UpdateResumeRequest extends FormRequest
             'projects.*.description' => 'nullable|string',
             'projects.*.extraDetails' => 'nullable|string',
             'projects.*.links' => 'array',
-            'projects.*.links.*.link' => 'nullable|url',
+            'projects.*.links.*.link' => 'nullable|string',
 
             'certifications' => 'array',
             'certifications.*.issuingAuthority' => 'nullable|string',
             'certifications.*.title' => 'nullable|string',
             'certifications.*.issueDate' => 'nullable|date|before:today',
-            'certifications.*.link' => 'nullable|url',
+            'certifications.*.link' => 'nullable|string',
         ];
     }
 }

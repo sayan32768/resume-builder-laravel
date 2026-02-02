@@ -207,15 +207,16 @@ class UserController extends Controller
         $accessToken = $accessTokenObj->plainTextToken;
         $refreshToken = $refreshTokenObj->plainTextToken;
 
-        UserSession::create([
-            'user_id' => $user->id,
-            'access_token_id' => $accessTokenObj->accessToken->id,
-            'refresh_token_id' => $refreshTokenObj->accessToken->id,
-            'ip_address' => request()->ip(),
-            'user_agent' => request()->userAgent(),
-            'last_seen_at' => now(),
-        ]);
-
+        if ($user->role === 'USER') {
+            UserSession::create([
+                'user_id' => $user->id,
+                'access_token_id' => $accessTokenObj->accessToken->id,
+                'refresh_token_id' => $refreshTokenObj->accessToken->id,
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+                'last_seen_at' => now(),
+            ]);
+        }
 
         $user->update([
             'isLoggedIn' => true,

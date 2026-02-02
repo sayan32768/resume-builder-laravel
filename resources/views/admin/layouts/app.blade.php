@@ -73,6 +73,19 @@
                             <span>Templates</span>
                         </a>
 
+
+                        {{-- Audit Logs --}}
+                        <a href="{{ route('admin.audit-logs.index') }}"
+                            class="group flex items-center gap-3 px-3 py-3 rounded-md transition
+       {{ request()->routeIs('admin.audit-logs.*')
+           ? 'bg-brand/10 text-brand font-semibold'
+           : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">
+                            <x-lucide-clipboard-list
+                                class="w-5 h-5 transition
+            {{ request()->routeIs('admin.audit-logs.*') ? 'text-brand' : 'text-slate-400 group-hover:text-slate-600' }}" />
+                            <span>Audit Logs</span>
+                        </a>
+
                         {{-- Settings --}}
                         {{-- <a href="{{ route('admin.resumes.index') }}"
                             class="group flex items-center gap-3 px-3 py-3 rounded-md transition text-slate-700 hover:bg-slate-100 hover:text-slate-900">

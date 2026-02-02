@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin;
 
 use App\Models\Resume;
+use App\Services\AuditLogger;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -29,7 +30,7 @@ class ResumeManagement extends Component
         $template = request()->query('template');
 
         if (!blank($template)) {
-            $this->resumeType = strtolower($template);
+            $this->resumeType = ucfirst($template);
         }
     }
 
@@ -76,7 +77,30 @@ class ResumeManagement extends Component
 
     public function deleteResume(string $resumeId): void
     {
-        $resume = Resume::findOrFail($resumeId);
+        $resume = Resume::query()
+            ->with('user')
+            ->findOrFail($resumeId);
+
+        // snapshot before deletion
+        $before = [
+            'id' => (string) $resume->id,
+            'userId' => (string) $resume->userId,
+            'resumeTitle' => $resume->resumeTitle ?? null,
+            'resumeType' => $resume->resumeType ?? null,
+            'created_at' => optional($resume->created_at)->toDateTimeString(),
+        ];
+
+        AuditLogger::log(
+            'ADMIN_RESUME_DELETED',
+            $resume,
+            $before,
+            null,
+            [
+                'page' => 'resume-management',
+                'user_email' => optional($resume->user)->email,
+                'user_name' => optional($resume->user)->fullName,
+            ]
+        );
 
         $resume->delete();
 
@@ -84,6 +108,7 @@ class ResumeManagement extends Component
 
         $this->resetPage();
     }
+
 
     public function render()
     {
