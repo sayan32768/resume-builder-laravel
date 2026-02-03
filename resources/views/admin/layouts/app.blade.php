@@ -37,6 +37,20 @@
                             <span>Dashboard</span>
                         </a>
 
+
+                        {{-- Analytics --}}
+                        <a href="{{ route('admin.analytics.index') }}"
+                            class="group flex items-center gap-3 px-3 py-3 rounded-md transition
+       {{ request()->routeIs('admin.analytics.*')
+           ? 'bg-brand/10 text-brand font-semibold'
+           : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">
+                            <x-lucide-bar-chart-2
+                                class="w-5 h-5 transition
+            {{ request()->routeIs('admin.analytics.*') ? 'text-brand' : 'text-slate-400 group-hover:text-slate-600' }}" />
+                            <span>Analytics</span>
+                        </a>
+
+
                         {{-- Users --}}
                         <a href="{{ route('admin.users.index') }}"
                             class="group flex items-center gap-3 px-3 py-3 rounded-md transition

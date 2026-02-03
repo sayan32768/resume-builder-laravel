@@ -12,8 +12,11 @@ Route::prefix('admin')
     ->middleware(['auth', 'admin'])
     ->group(function () {
 
-        Route::get('/dashboard', [DashboardController::class, 'index'])
+        Route::view('/dashboard', 'admin.dashboard.index')
             ->name('admin.dashboard');
+
+        Route::view('/analytics', 'admin.analytics.index')
+            ->name('admin.analytics.index');
 
         Route::get('/reports/export', [ReportController::class, 'exportCsv'])
             ->name('admin.reports.export');
