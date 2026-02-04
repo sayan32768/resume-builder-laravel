@@ -4,6 +4,37 @@
 @section('pageTitle', 'Resume Preview')
 
 @section('content')
+    @php
+        // Month-Year formatter: "Feb 2026"
+        $formatMY = function ($date) {
+            if (blank($date)) {
+                return null;
+            }
+
+            try {
+                return \Carbon\Carbon::parse($date)->format('M Y');
+            } catch (\Exception $e) {
+                return $date;
+            }
+        };
+
+        // Date range formatter for resume sections
+        $formatRangeMY = function ($dates) use ($formatMY) {
+            if (!is_array($dates)) {
+                return '';
+            }
+
+            $start = $dates['startDate'] ?? null;
+            $end = $dates['endDate'] ?? null;
+
+            if (blank($start)) {
+                return '';
+            }
+
+            return $formatMY($start) . ' - ' . (!blank($end) ? $formatMY($end) : 'Present');
+        };
+    @endphp
+
     <div class="space-y-6">
 
         <div class="flex items-start justify-between">
@@ -16,7 +47,7 @@
                 </p>
             </div>
 
-            <a href="{{ url()->previous() ?? route('admin.resumes.index') }}"
+            <a href="{{ url()->previous() ?: route('admin.resumes.index') }}"
                 class="px-4 py-2 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 text-sm">
                 Back
             </a>
@@ -31,13 +62,17 @@
                     <div class="text-slate-500">Resume ID</div>
                     <div class="font-medium text-slate-900 break-all">{{ $resume->id }}</div>
                 </div>
+
                 <div>
                     <div class="text-slate-500">Template</div>
                     <div class="font-medium text-slate-900">{{ $resumeData['resumeType'] ?? '-' }}</div>
                 </div>
+
                 <div>
                     <div class="text-slate-500">Draft</div>
-                    <div class="font-medium text-slate-900">{{ $resumeData['isDraft'] ?? true ? 'Yes' : 'No' }}</div>
+                    <div class="font-medium text-slate-900">
+                        {{ $resumeData['isDraft'] ?? true ? 'Yes' : 'No' }}
+                    </div>
                 </div>
             </div>
         </div>
@@ -52,14 +87,17 @@
                     <div class="text-slate-500">Full Name</div>
                     <div class="font-medium text-slate-900">{{ $p['fullName'] ?? '-' }}</div>
                 </div>
+
                 <div>
                     <div class="text-slate-500">Email</div>
                     <div class="font-medium text-slate-900">{{ $p['email'] ?? '-' }}</div>
                 </div>
+
                 <div>
                     <div class="text-slate-500">Phone</div>
                     <div class="font-medium text-slate-900">{{ $p['phone'] ?? '-' }}</div>
                 </div>
+
                 <div>
                     <div class="text-slate-500">Address</div>
                     <div class="font-medium text-slate-900">{{ $p['address'] ?? '-' }}</div>
@@ -67,7 +105,7 @@
 
                 <div class="md:col-span-2">
                     <div class="text-slate-500">About</div>
-                    <div class="font-medium text-slate-900 whitespace-pre-wrap">{{ $p['about'] ?? '-' }}</div>
+                    <div class="font-medium text-slate-900 ">{{ $p['about'] ?? '-' }}</div>
                 </div>
             </div>
         </div>
@@ -79,16 +117,15 @@
             </div>
 
             @php($socials = $resumeData['personalDetails']['socials'] ?? [])
-
             <div class="p-5 space-y-3 text-sm">
                 @if (count($socials))
                     @foreach ($socials as $social)
-                        <div class="flex items-center justify-between border border-slate-200 rounded-lg px-4 py-3">
+                        <div class="flex items-center justify-between border border-slate-200 rounded-lg px-4 py-3 gap-4">
                             <div class="font-medium text-slate-900">
                                 {{ $social['name'] ?? 'Social' }}
                             </div>
                             <div class="text-slate-600">
-                                @if (!empty($social['link']))
+                                @if (!blank($social['link'] ?? null))
                                     <a href="{{ $social['link'] }}" target="_blank"
                                         class="text-brand hover:underline break-all">
                                         {{ $social['link'] }}
@@ -105,7 +142,6 @@
             </div>
         </div>
 
-
         {{-- Education --}}
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
             <div class="p-5 border-b border-slate-200">
@@ -116,8 +152,24 @@
                 @forelse(($resumeData['educationDetails'] ?? []) as $edu)
                     <div class="border border-slate-200 rounded-lg p-4">
                         <div class="font-semibold text-slate-900">{{ $edu['name'] ?? '-' }}</div>
-                        <div class="text-slate-600">{{ $edu['degree'] ?? '-' }} • {{ $edu['location'] ?? '-' }}</div>
-                        <div class="text-slate-500 text-xs">{{ $edu['dates'] ?? '' }}</div>
+
+                        <div class="text-slate-600">
+                            {{ $edu['degree'] ?? '-' }}
+                            @if (!blank($edu['location'] ?? null))
+                                • {{ $edu['location'] }}
+                            @endif
+                        </div>
+
+                        <div class="text-slate-500 text-xs">
+                            {{ $formatRangeMY($edu['dates'] ?? []) }}
+                        </div>
+
+                        @php($grades = $edu['grades'] ?? null)
+                        @if (is_array($grades) && !blank($grades['score'] ?? null))
+                            <div class="text-slate-600 text-xs mt-2">
+                                {{ $grades['type'] ?? 'Grade' }}: {{ $grades['score'] }}
+                            </div>
+                        @endif
                     </div>
                 @empty
                     <div class="text-slate-500">No education records.</div>
@@ -130,11 +182,12 @@
             <div class="text-lg font-bold text-slate-900 mb-4">Skills</div>
 
             @php($skills = $resumeData['skills'] ?? [])
+
             @if (count($skills))
                 <div class="flex flex-wrap gap-2">
                     @foreach ($skills as $skill)
                         <span class="px-3 py-1 rounded-full text-xs bg-slate-100 text-slate-700">
-                            {{ $skill }}
+                            {{ is_array($skill) ? $skill['skillName'] ?? '-' : $skill }}
                         </span>
                     @endforeach
                 </div>
@@ -153,16 +206,20 @@
                 @forelse(($resumeData['professionalExperience'] ?? []) as $exp)
                     <div class="border border-slate-200 rounded-lg p-4">
                         <div class="font-semibold text-slate-900">{{ $exp['position'] ?? '-' }}</div>
+
                         <div class="text-slate-600">
                             {{ $exp['companyName'] ?? '-' }}
-                            @if (!empty($exp['companyAddress']))
+                            @if (!blank($exp['companyAddress'] ?? null))
                                 • {{ $exp['companyAddress'] }}
                             @endif
                         </div>
-                        <div class="text-slate-500 text-xs mt-1">{{ $exp['dates'] ?? '' }}</div>
 
-                        @if (!empty($exp['workDescription']))
-                            <div class="text-slate-700 whitespace-pre-wrap mt-3">
+                        <div class="text-slate-500 text-xs mt-1">
+                            {{ $formatRangeMY($exp['dates'] ?? []) }}
+                        </div>
+
+                        @if (!blank($exp['workDescription'] ?? null))
+                            <div class="text-slate-700  mt-3">
                                 {{ $exp['workDescription'] }}
                             </div>
                         @endif
@@ -182,8 +239,36 @@
             <div class="p-5 space-y-4 text-sm">
                 @forelse(($resumeData['projects'] ?? []) as $proj)
                     <div class="border border-slate-200 rounded-lg p-4">
-                        <div class="font-semibold text-slate-900">{{ $proj['title'] ?? '-' }}</div>
-                        <div class="text-slate-700 whitespace-pre-wrap mt-2">{{ $proj['description'] ?? '' }}</div>
+                        <div class="font-semibold text-slate-900">
+                            {{ $proj['title'] ?? ($proj['name'] ?? '-') }}
+                        </div>
+
+                        @if (!blank($proj['description'] ?? null))
+                            <div class="text-slate-700  mt-2">
+                                {{ $proj['description'] }}
+                            </div>
+                        @endif
+
+                        @if (!blank($proj['extraDetails'] ?? null))
+                            <div class="text-slate-700  mt-2">
+                                {{ $proj['extraDetails'] }}
+                            </div>
+                        @endif
+
+                        @php($links = $proj['links'] ?? [])
+                        @if (is_array($links) && count($links))
+                            <div class="mt-3 flex flex-wrap gap-3">
+                                @foreach ($links as $idx => $l)
+                                    @php($url = is_array($l) ? $l['link'] ?? null : $l)
+                                    @if (!blank($url))
+                                        <a href="{{ $url }}" target="_blank" class="text-brand hover:underline">
+                                            {{-- Link {{ $idx + 1 }} --}}
+                                            {{ $url }}
+                                        </a>
+                                    @endif
+                                @endforeach
+                            </div>
+                        @endif
                     </div>
                 @empty
                     <div class="text-slate-500">No projects.</div>
@@ -201,16 +286,20 @@
                 @forelse(($resumeData['otherExperience'] ?? []) as $exp)
                     <div class="border border-slate-200 rounded-lg p-4">
                         <div class="font-semibold text-slate-900">{{ $exp['position'] ?? '-' }}</div>
+
                         <div class="text-slate-600">
                             {{ $exp['companyName'] ?? '-' }}
-                            @if (!empty($exp['companyAddress']))
+                            @if (!blank($exp['companyAddress'] ?? null))
                                 • {{ $exp['companyAddress'] }}
                             @endif
                         </div>
-                        <div class="text-slate-500 text-xs mt-1">{{ $exp['dates'] ?? '' }}</div>
 
-                        @if (!empty($exp['workDescription']))
-                            <div class="text-slate-700 whitespace-pre-wrap mt-3">
+                        <div class="text-slate-500 text-xs mt-1">
+                            {{ $formatRangeMY($exp['dates'] ?? []) }}
+                        </div>
+
+                        @if (!blank($exp['workDescription'] ?? null))
+                            <div class="text-slate-700  mt-3">
                                 {{ $exp['workDescription'] }}
                             </div>
                         @endif
@@ -220,7 +309,6 @@
                 @endforelse
             </div>
         </div>
-
 
         {{-- Certifications --}}
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
@@ -240,12 +328,13 @@
                         </div>
 
                         <div class="text-slate-500 text-xs mt-1">
-                            {{ $cert['issueDate'] ?? '' }}
+                            {{ !blank($cert['issueDate'] ?? null) ? $formatMY($cert['issueDate']) : '' }}
                         </div>
 
-                        @if (!empty($cert['link']))
+                        @if (!blank($cert['link'] ?? null))
                             <div class="mt-2">
-                                <a href="{{ $cert['link'] }}" target="_blank" class="text-brand hover:underline break-all">
+                                <a href="{{ $cert['link'] }}" target="_blank" class="text-brand hover:underline">
+                                    {{-- Link --}}
                                     {{ $cert['link'] }}
                                 </a>
                             </div>
@@ -256,9 +345,6 @@
                 @endforelse
             </div>
         </div>
-
-
-
 
     </div>
 @endsection

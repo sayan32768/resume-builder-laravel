@@ -223,11 +223,11 @@
                                     <x-lucide-eye class="w-4 h-4" />
                                 </a>
 
-                                <a href="{{ route('admin.resumes.preview', $resume->id) }}"
+                                {{-- <a href="{{ route('admin.resumes.preview', $resume->id) }}"
                                     class="p-2 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition"
                                     title="Preview Resume">
                                     <x-lucide-file-text class="w-4 h-4" />
-                                </a>
+                                </a> --}}
 
                                 <!-- Delete -->
                                 <button wire:click="deleteResume('{{ $resume->id }}')"

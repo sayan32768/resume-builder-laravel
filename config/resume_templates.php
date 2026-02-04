@@ -23,20 +23,20 @@ return [
         'preview_component' => 'template-previews.classic',
     ],
 
-    [
-        'key' => 'bold',
-        'name' => 'Bold',
-        'view' => 'admin.resumes.templates.bold',
-        'description' => 'Bold and strong section layout',
-        'preview_component' => 'template-previews.bold',
-    ],
-    [
-        'key' => 'boxed',
-        'name' => 'Boxed',
-        'view' => 'admin.resumes.templates.boxed',
-        'description' => 'Boxed layout with clear containers',
-        'preview_component' => 'template-previews.boxed',
-    ],
+    // [
+    //     'key' => 'bold',
+    //     'name' => 'Bold',
+    //     'view' => 'admin.resumes.templates.bold',
+    //     'description' => 'Bold and strong section layout',
+    //     'preview_component' => 'template-previews.bold',
+    // ],
+    // [
+    //     'key' => 'boxed',
+    //     'name' => 'Boxed',
+    //     'view' => 'admin.resumes.templates.boxed',
+    //     'description' => 'Boxed layout with clear containers',
+    //     'preview_component' => 'template-previews.boxed',
+    // ],
     [
         'key' => 'charm',
         'name' => 'Charm',

@@ -55,27 +55,30 @@ class ResumeController extends Controller
         return min($score, 100);
     }
 
-
     public function getPastResumes(Request $request)
     {
-        $resumes = $request->user()
-            ->resumes()
-            ->orderByDesc('updated_at')
-            ->get(['id', 'resumeTitle', 'resumeType', 'updated_at', 'accentColor', 'isDraft']);
+        $type = $request->query('type', 'published'); // drafts|published
 
-        return response()->json([
-            'success' => true,
-            'data' => $resumes->map(fn($r) => [
-                '_id' => $r->id,
-                'resumeTitle' => $r->resumeTitle,
-                'resumeType' => $r->resumeType,
-                'updatedAt' => $r->updated_at,
-                'color' => $r->accentColor,
-                'isDraft' => $r->isDraft,
-                'completion' => $this->calculateCompletion($r),
-            ])
+        $query = $request->user()->resumes()->orderByDesc('updated_at');
+
+        if ($type === 'drafts') $query->where('isDraft', true);
+        if ($type === 'published') $query->where('isDraft', false);
+
+        $resumes = $query->paginate(10, ['id', 'resumeTitle', 'resumeType', 'updated_at', 'accentColor', 'isDraft']);
+
+        $resumes->getCollection()->transform(fn($r) => [
+            '_id' => $r->id,
+            'resumeTitle' => $r->resumeTitle,
+            'resumeType' => $r->resumeType,
+            'updatedAt' => $r->updated_at,
+            'color' => $r->accentColor,
+            'isDraft' => $r->isDraft,
+            'completion' => $this->calculateCompletion($r),
         ]);
+
+        return response()->json(['success' => true, 'data' => $resumes]);
     }
+
 
 
     public function show(Request $request, string $id)
