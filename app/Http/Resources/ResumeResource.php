@@ -45,9 +45,9 @@ class ResumeResource extends JsonResource
                         'grades' => [
                             'type'    => $edu->grades['type'] ?? null,
                             'score'   => $edu->grades['score'] ?? null,
-                            'message' => $edu->grades['message'] !== null
-                                ? $edu->grades['message']
-                                : '',
+                            // 'message' => $edu->grades['message'] !== null
+                            //     ? $edu->grades['message']
+                            //     : '',
                         ],
                     ])->values()
                     : [],

@@ -249,7 +249,7 @@ class UserController extends Controller
         if (! $user || ! Hash::check($data['password'], $user->password)) {
             AuditLogger::log(
                 'USER_LOGIN_FAILED',
-                null,
+                $user,
                 null,
                 null,
                 [
@@ -274,7 +274,7 @@ class UserController extends Controller
         if ($user->is_blocked) {
             AuditLogger::log(
                 'USER_LOGIN_FAILED',
-                null,
+                $user,
                 null,
                 null,
                 [
