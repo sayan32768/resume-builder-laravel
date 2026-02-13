@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreResumeRequest;
 use App\Http\Requests\UpdateResumeRequest;
 use App\Http\Resources\ResumeResource;
+use App\Services\AuditLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -111,6 +112,13 @@ class ResumeController extends Controller
             'isDraft' => $request->isDraft,
         ]);
 
+        AuditLogger::log(
+            'RESUME_CREATED',
+            $resume,
+            null,
+            $resume->toArray()
+        );
+
         return response()->json([
             'success' => true,
             'data' => [
@@ -129,6 +137,8 @@ class ResumeController extends Controller
         $resume = $request->user()
             ->resumes()
             ->findOrFail($id);
+
+        $before = $resume->toArray();
 
 
         DB::transaction(function () use ($resume, $data) {
@@ -223,7 +233,12 @@ class ResumeController extends Controller
             }
         });
 
-
+        AuditLogger::log(
+            'RESUME_UPDATED',
+            $resume,
+            $before,
+            $resume->fresh()->toArray()
+        );
 
         return response()->json([
             'success' => true,
@@ -238,8 +253,75 @@ class ResumeController extends Controller
             ->resumes()
             ->findOrFail($id);
 
+        $before = $resume->toArray();
+
         $resume->delete();
 
+        AuditLogger::log(
+            'RESUME_DELETED',
+            $resume,
+            $before,
+            null
+        );
+
         return response()->json(['success' => true]);
+    }
+
+
+
+    // PROFILE STATS
+    // User Dashboard Stats
+    public function stats(Request $request)
+    {
+        $user = $request->user();
+
+        $resumes = $user->resumes();
+
+        $totalResumes = $resumes->count();
+        $completedResumes = $resumes->where('isDraft', false)->count();
+        $draftResumes = $resumes->where('isDraft', true)->count();
+
+
+        $averageCompletion = $totalResumes > 0
+            ? round(($completedResumes / $totalResumes) * 100)
+            : 0;
+
+
+
+        $profileStrength = 0;
+
+        if ($user->fullName) $profileStrength += 30;
+        if ($user->email) $profileStrength += 30;
+        if ($totalResumes > 0) $profileStrength += 40;
+
+
+        $lastEditedResume = $user->resumes()
+            ->latest('updated_at')
+            ->first();
+
+        $lastResumeData = null;
+
+        $completion = $this->calculateCompletion($lastEditedResume);
+
+        if ($lastEditedResume) {
+            $lastResumeData = [
+                'id' => $lastEditedResume->id,
+                'title' => $lastEditedResume->resumeTitle,
+                'isDraft' => $lastEditedResume->isDraft,
+                'updatedAt' => $lastEditedResume->updated_at,
+                // temporary completion logic
+                'completion' => $completion,
+            ];
+        }
+
+        return response()->json([
+            'totalResumes' => $totalResumes,
+            'completedResumes' => $completedResumes,
+            // 'draftResumes' => $draftResumes,
+            'averageCompletion' => $averageCompletion,
+            // 'profileStrength' => $profileStrength,
+            // 'lastEditedResumeId' => $lastEditedResume?->id,
+            'lastResume' => $lastResumeData,
+        ]);
     }
 }

@@ -75,6 +75,27 @@ class ResumeManagement extends Component
             || $this->sortBy !== 'created_at' || $this->sortDir !== 'desc';
     }
 
+    public function viewResume(string $resumeId): void
+    {
+        $resume = Resume::query()
+            ->with('user')
+            ->findOrFail($resumeId);
+
+        AuditLogger::log(
+            'ADMIN_RESUME_VIEWED',
+            $resume,
+            null,
+            null,
+            [
+                'page' => 'admin/resumes',
+                'user_email' => optional($resume->user)->email,
+                'user_name' => optional($resume->user)->fullName,
+            ]
+        );
+
+        redirect()->route('admin.resumes.show', $resumeId);
+    }
+
     public function deleteResume(string $resumeId): void
     {
         $resume = Resume::query()
@@ -96,7 +117,7 @@ class ResumeManagement extends Component
             $before,
             null,
             [
-                'page' => 'resume-management',
+                'page' => 'admin/resumes',
                 'user_email' => optional($resume->user)->email,
                 'user_name' => optional($resume->user)->fullName,
             ]

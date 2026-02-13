@@ -88,6 +88,20 @@ class UserManagement extends Component
         $this->reset(['showViewModal', 'viewUser']);
     }
 
+    public function viewUser(string $userId): void
+    {
+        AuditLogger::log(
+            'ADMIN_VIEWED_USER',
+            User::findOrFail($userId),
+            null,
+            null,
+            [
+                'page' => 'admin/users'
+            ]
+        );
+
+        redirect()->route('admin.users.show', $userId);
+    }
 
     public function toggleAdmin(string $userId)
     {

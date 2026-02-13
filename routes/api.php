@@ -20,8 +20,10 @@ Route::middleware('auth:sanctum', 'updateLastSeen', 'not_blocked')->group(functi
     Route::post('/auth/logout', [UserController::class, 'logout']);
     Route::get('/auth/me', [UserController::class, 'me']);
     Route::post('/auth/refresh', [UserController::class, 'refresh']);
+    Route::put('/auth/update-profile', [UserController::class, 'updateProfile']);
     // Route::post('/auth/email/resend', [UserController::class, 'resendVerification']);
 
+    Route::get('/resume/stats', [ResumeController::class, 'stats']);
     Route::get('/resume/all', [ResumeController::class, 'getPastResumes']);
     Route::post('/resume/create', [ResumeController::class, 'create']);
     Route::put('/resume/{id}', [ResumeController::class, 'update']);

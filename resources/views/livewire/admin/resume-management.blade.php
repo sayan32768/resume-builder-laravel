@@ -217,11 +217,27 @@
 
                         <td class="px-4 py-3 text-right pr-6">
                             <div class="inline-flex items-center gap-2">
-                                <a href="{{ route('admin.resumes.show', $resume->id) }}"
+                                {{-- <a href="{{ route('admin.resumes.show', $resume->id) }}"
                                     class="p-2 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition"
                                     title="Show Resume Data">
                                     <x-lucide-eye class="w-4 h-4" />
-                                </a>
+                                </a> --}}
+
+                                <button wire:click="viewResume('{{ $resume->id }}')" wire:loading.attr="disabled"
+                                    class="p-2 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition"
+                                    title="View resume">
+                                    <!-- spinner -->
+                                    <svg wire:loading wire:target="viewResume('{{ $resume->id }}')"
+                                        class="w-4 h-4 animate-spin" xmlns="http://www.w3.org/2000/svg"
+                                        fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10"
+                                            stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor"
+                                            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                    </svg>
+                                    <x-lucide-eye wire:loading.remove wire:target="viewResume('{{ $resume->id }}')"
+                                        class="w-4 h-4" />
+                                </button>
 
                                 {{-- <a href="{{ route('admin.resumes.preview', $resume->id) }}"
                                     class="p-2 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition"

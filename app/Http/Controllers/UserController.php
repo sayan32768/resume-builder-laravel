@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 
 use App\Models\User;
 use App\Models\UserSession;
+use App\Services\AuditLogger;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Validation\ValidationException;
@@ -25,6 +26,73 @@ class UserController extends Controller
                 'success' => false,
                 'message' => 'Unauthenticated'
             ], 401);
+        }
+
+        return response()->json([
+            'success' => true,
+            'user' => [
+                'id'       => $user->id,
+                'email'    => $user->email,
+                'fullName' => $user->fullName,
+            ],
+        ], 200);
+    }
+
+
+    // UPDATE PROFILE
+    public function updateProfile(Request $request)
+    {
+        $user = $request->user();
+
+        $validated = $request->validate([
+            'fullName' => ['required', 'string', 'max:100'],
+            'email' => [
+                'required',
+                'email',
+                'unique:users,email,' . $user->id,
+            ],
+            'password' => ['nullable', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $before = collect([
+            'fullName' => $user->fullName,
+            'email' => $user->email,
+        ]);
+
+        $user->fullName = $validated['fullName'];
+        $user->email = strtolower($validated['email']);
+
+        if (!empty($validated['password'])) {
+            $user->password = Hash::make($validated['password']);
+        }
+
+        $user->save();
+
+        $after = collect([
+            'fullName' => $validated['fullName'],
+            'email' => strtolower($validated['email']),
+        ]);
+
+        $changes = $before->diffAssoc($after);
+
+        if ($changes->isNotEmpty()) {
+            AuditLogger::log(
+                'USER_PROFILE_UPDATED',
+                $user,
+                $before->only($changes->keys())->toArray(),
+                $after->only($changes->keys())->toArray(),
+                ['page' => 'profile']
+            );
+        }
+
+        if (!empty($validated['password'])) {
+            AuditLogger::log(
+                'USER_PASSWORD_CHANGED',
+                $user,
+                null,
+                null,
+                ['page' => 'profile']
+            );
         }
 
         return response()->json([
@@ -118,6 +186,8 @@ class UserController extends Controller
             'role' => $data['role']
         ]);
 
+        AuditLogger::log('USER_REGISTERED', $user);
+
         // $this->sendVerification($user);
 
         return response()->json([
@@ -177,6 +247,16 @@ class UserController extends Controller
 
 
         if (! $user || ! Hash::check($data['password'], $user->password)) {
+            AuditLogger::log(
+                'USER_LOGIN_FAILED',
+                null,
+                null,
+                null,
+                [
+                    'email' => $request->email,
+                ]
+            );
+
             return response()->json([
                 'success' => false,
                 'message' => 'Incorrect Password',
@@ -191,6 +271,16 @@ class UserController extends Controller
         }
 
         if ($user->is_blocked) {
+            AuditLogger::log(
+                'USER_LOGIN_FAILED',
+                null,
+                null,
+                null,
+                [
+                    'email' => $request->email,
+                ]
+            );
+
             return response()->json([
                 'success' => false,
                 'message' => 'Your account has been blocked. Please contact support.',
@@ -208,6 +298,14 @@ class UserController extends Controller
         $refreshToken = $refreshTokenObj->plainTextToken;
 
         if ($user->role === 'USER') {
+            AuditLogger::log(
+                'USER_LOGIN_SUCCESS',
+                $user,
+                null,
+                null,
+                []
+            );
+
             UserSession::create([
                 'user_id' => $user->id,
                 'access_token_id' => $accessTokenObj->accessToken->id,
@@ -263,6 +361,8 @@ class UserController extends Controller
         $request->user()->tokens()->delete();
         UserSession::where('user_id', $request->user()->id)->delete();
         $request->user()->update(['isLoggedIn' => false]);
+
+        AuditLogger::log('USER_LOGOUT', $request->user());
 
         return response()->json(['success' => true]);
     }

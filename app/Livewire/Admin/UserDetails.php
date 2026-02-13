@@ -66,6 +66,27 @@ class UserDetails extends Component
         return min($score, 100);
     }
 
+    public function viewResume(string $resumeId): void
+    {
+        $resume = Resume::query()
+            ->with('user')
+            ->findOrFail($resumeId);
+
+        AuditLogger::log(
+            'ADMIN_RESUME_VIEWED',
+            $resume,
+            null,
+            null,
+            [
+                'page' => 'admin/users',
+                'user_email' => optional($resume->user)->email,
+                'user_name' => optional($resume->user)->fullName,
+            ]
+        );
+
+        redirect()->route('admin.resumes.show', $resumeId);
+    }
+
     public function deleteResume(string $resumeId): void
     {
         $resume = Resume::findOrFail($resumeId);
