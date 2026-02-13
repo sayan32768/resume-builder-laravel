@@ -7,10 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class AuditLogger
 {
-    public static function log(string $action, ?Model $target = null, array $before = null, array $after = null, array $meta = [])
+    public static function log(string $action, ?Model $target = null, array $before = null, array $after = null, array $meta = [], ?string $actorId = null)
     {
         AuditLog::create([
-            'actor_id' => auth()->id(),
+            'actor_id' => $actorId ?? auth()->id(),
             'action' => $action,
 
             'target_type' => $target ? get_class($target) : null,

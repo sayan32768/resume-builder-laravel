@@ -254,7 +254,8 @@ class UserController extends Controller
                 null,
                 [
                     'email' => $request->email,
-                ]
+                ],
+                $user->id
             );
 
             return response()->json([
@@ -278,7 +279,8 @@ class UserController extends Controller
                 null,
                 [
                     'email' => $request->email,
-                ]
+                ],
+                $user->id
             );
 
             return response()->json([
@@ -303,7 +305,8 @@ class UserController extends Controller
                 $user,
                 null,
                 null,
-                []
+                [],
+                $user->id
             );
 
             UserSession::create([
