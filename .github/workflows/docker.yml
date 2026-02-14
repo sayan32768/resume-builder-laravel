@@ -27,5 +27,5 @@ jobs:
           context: .
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/resume-builder:v1
-            ${{ secrets.DOCKERHUB_USERNAME }}/resume-builder:${{ github.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/resume-builder-laravel:v1
+            ${{ secrets.DOCKERHUB_USERNAME }}/resume-builder-laravel:${{ github.sha }}
