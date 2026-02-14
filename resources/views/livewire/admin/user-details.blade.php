@@ -12,6 +12,51 @@
         </a>
     </div>
 
+    <div class="mt-6 border-t border-slate-200 pt-5 space-y-4 mx-2">
+
+        <div class="flex items-center justify-between">
+            <div class="text-sm font-semibold text-slate-800">Password</div>
+
+            <button wire:click="$toggle('showPasswordForm')" class="text-sm font-medium text-slate-700 hover:underline">
+                {{ $showPasswordForm ? 'Cancel' : 'Change Password' }}
+            </button>
+        </div>
+
+        @if ($showPasswordForm)
+            <div class="space-y-3">
+
+                <input type="password" wire:model="newPassword" placeholder="New password"
+                    class="w-full rounded-md border border-slate-300 bg-white px-3 py-2
+                       focus:outline-none focus:ring-2 focus:ring-[#183D3D]/30" />
+                @error('newPassword')
+                    <p class="text-sm text-red-600">{{ $message }}</p>
+                @enderror
+
+                <input type="password" wire:model="confirmNewPassword" placeholder="Confirm new password"
+                    class="w-full rounded-md border border-slate-300 bg-white px-3 py-2
+                       focus:outline-none focus:ring-2 focus:ring-[#183D3D]/30" />
+                @error('confirmNewPassword')
+                    <p class="text-sm text-red-600">{{ $message }}</p>
+                @enderror
+
+                <div class="flex justify-end">
+                    <button wire:click="changePassword" wire:loading.attr="disabled" wire:target="changePassword"
+                        class="rounded-md bg-[#183D3D] px-4 py-2 text-sm font-medium text-white
+                           transition hover:bg-[#145252] disabled:opacity-60">
+
+                        <span wire:loading.remove wire:target="changePassword">
+                            Update Password
+                        </span>
+
+                        <span wire:loading wire:target="changePassword">
+                            Updating...
+                        </span>
+                    </button>
+                </div>
+            </div>
+        @endif
+    </div>
+
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
             <div class="text-sm text-slate-500">Total Resumes</div>
@@ -282,8 +327,8 @@
                                     title="View resume">
                                     <!-- spinner -->
                                     <svg wire:loading wire:target="viewResume('{{ $resume->id }}')"
-                                        class="w-4 h-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                        viewBox="0 0 24 24">
+                                        class="w-4 h-4 animate-spin" xmlns="http://www.w3.org/2000/svg"
+                                        fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10"
                                             stroke="currentColor" stroke-width="4"></circle>
                                         <path class="opacity-75" fill="currentColor"

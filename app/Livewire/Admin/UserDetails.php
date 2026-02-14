@@ -16,9 +16,42 @@ class UserDetails extends Component
 
     public User $user;
 
+    // FOR CHANGING PASSWORD
+    public string $newPassword = '';
+    public string $confirmNewPassword = '';
+    public bool $showPasswordForm = false;
+
     public function mount(User $user)
     {
         $this->user = $user;
+    }
+
+    // CHANGING PASSWORD
+    public function changePassword(): void
+    {
+        $data = $this->validate([
+            'newPassword' => 'required|min:8',
+            'confirmNewPassword' => 'required|same:newPassword',
+        ]);
+
+        $before = ['password_changed' => false];
+
+        $this->user->update([
+            'password' => \Hash::make($data['newPassword']),
+        ]);
+
+        $after = ['password_changed' => true];
+
+        AuditLogger::log(
+            'ADMIN_CHANGED_USER_PASSWORD',
+            $this->user,
+            $before,
+            $after
+        );
+
+        $this->reset(['newPassword', 'confirmNewPassword', 'showPasswordForm']);
+
+        session()->flash('success', 'Password updated successfully.');
     }
 
     private function calculateCompletion($resume): int

@@ -37,6 +37,67 @@ class UserManagement extends Component
     public $sortDir = 'desc';
 
 
+
+    // Create user modal
+    public bool $showCreateModal = false;
+
+    public string $fullName = '';
+    public string $email = '';
+    public string $password = '';
+    public string $confirmPassword = '';
+    public string $roleInput = 'USER';
+
+
+    protected function createRules()
+    {
+        return [
+            'fullName' => 'required|string|max:100',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|min:8',
+            'confirmPassword' => 'required|same:password',
+            'roleInput' => 'required|in:USER,ADMIN',
+        ];
+    }
+
+
+
+    public function openCreateModal(): void
+    {
+        $this->resetValidation();
+        $this->reset(['fullName', 'email', 'password', 'confirmPassword', 'roleInput']);
+        $this->roleInput = 'USER';
+        $this->showCreateModal = true;
+    }
+
+    public function closeCreateModal(): void
+    {
+        $this->reset(['showCreateModal', 'fullName', 'email', 'password', 'confirmPassword', 'roleInput']);
+    }
+
+
+    public function createUser(): void
+    {
+        $data = $this->validate($this->createRules());
+
+        $user = User::create([
+            'fullName' => $data['fullName'],
+            'email' => $data['email'],
+            'password' => \Hash::make($data['password']),
+            'isVerified' => true,
+            'role' => $data['roleInput'],
+        ]);
+
+        AuditLogger::log('USER_REGISTERED', $user);
+
+        $this->closeCreateModal();
+
+        session()->flash('success', 'User created successfully.');
+
+        $this->resetPage(); // refresh list
+    }
+
+
+
     public function updatingSearch()
     {
         $this->resetPage();

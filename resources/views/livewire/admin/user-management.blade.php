@@ -18,7 +18,7 @@
                     $filterTargets = 'role,status,joinedFrom,joinedTo,sortBy,sortDir,resetFilters';
                 @endphp
 
-                <div class="relative z-[9999]">
+                <div class="relative z-1">
                     <!-- FILTER BUTTON -->
                     <button type="button" wire:click="toggleFilters"
                         class="inline-flex items-center gap-2 px-4 py-2.5 text-sm rounded-md border border-slate-200
@@ -47,11 +47,11 @@
                     @if ($showFilters)
                         <div
                             class="absolute right-0 top-full mt-2 w-[340px]
-            bg-white border border-slate-200 shadow-lg rounded-xl p-4">
+            bg-white border border-slate-200 shadow-lg rounded-md p-4">
 
                             <!-- overlay loader INSIDE dropdown -->
                             <div wire:loading wire:target="{{ $filterTargets }}"
-                                class="absolute inset-0 z-50 rounded-xl bg-white/70 backdrop-blur-[1px]
+                                class="absolute inset-0 z-50 rounded-md bg-white/70 backdrop-blur-[1px]
                 flex items-center justify-center text-center h-full">
                                 <div
                                     class="inline-flex items-center justify-center gap-2 text-sm text-slate-600 font-medium">
@@ -156,12 +156,36 @@
 
 
                 <!-- ADD NEW USER BUTTON -->
-                {{-- <button
+                <button wire:click="openCreateModal" wire:loading.attr="disabled" wire:target="openCreateModal"
                     class="w-38 inline-flex items-center gap-2 px-4 py-2.5 text-sm rounded-md
-           bg-black text-white hover:bg-gray-800 transition">
-                    <x-lucide-user-plus class="w-4 h-4" />
-                    <span>Add New User</span>
-                </button> --}}
+           bg-gray-800 text-white hover:bg-gray-700 transition disabled:opacity-60 disabled:cursor-not-allowed">
+
+                    <!-- Normal icon -->
+                    <span wire:loading.remove wire:target="openCreateModal" class="inline-flex">
+                        <x-lucide-user-plus class="w-4 h-4" />
+                    </span>
+
+                    <!-- Loader -->
+                    <span wire:loading wire:target="openCreateModal" class="inline-flex items-center gap-2">
+
+                        <svg class="w-4 h-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none"
+                            viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z">
+                            </path>
+                        </svg>
+                    </span>
+
+                    <!-- Text -->
+                    <span wire:loading.remove wire:target="openCreateModal">
+                        Add New User
+                    </span>
+
+                    <span wire:loading wire:target="openCreateModal">
+                        Creating...
+                    </span>
+                </button>
 
             </div>
         </div>
@@ -214,7 +238,7 @@
 
 
         <!-- User Table -->
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="bg-white rounded-md border border-slate-200 shadow-sm overflow-hidden">
             <table class="w-full text-sm">
                 <thead class="bg-slate-50 text-slate-500">
                     <tr>
@@ -470,6 +494,96 @@
 
                         <span wire:loading.remove wire:target="deleteConfirmed">Delete</span>
                         <span wire:loading wire:target="deleteConfirmed">Deleting...</span>
+                    </button>
+
+                </div>
+            </div>
+        </div>
+    @endif
+
+    @if ($showCreateModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+
+            <div class="w-full max-w-lg rounded-xl border border-slate-200 bg-white p-6 shadow-xl space-y-5">
+
+                <!-- Header -->
+                <div class="space-y-1">
+                    <h2 class="text-xl font-semibold text-slate-900">Create User</h2>
+                    <p class="text-sm text-slate-600">
+                        Enter user details to create a new account.
+                    </p>
+                </div>
+
+                <!-- Full Name -->
+                <div class="space-y-1">
+                    <label class="text-sm font-medium text-slate-600">Full Name</label>
+                    <input type="text" wire:model="fullName" placeholder="John Doe"
+                        class="w-full rounded-md border border-slate-300 bg-white px-3 py-2
+                       focus:outline-none focus:ring-2 focus:ring-[#183D3D]/30" />
+                    @error('fullName')
+                        <p class="text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- Email -->
+                <div class="space-y-1">
+                    <label class="text-sm font-medium text-slate-600">Email</label>
+                    <input type="email" wire:model="email" placeholder="m@example.com"
+                        class="w-full rounded-md border border-slate-300 bg-white px-3 py-2
+                       focus:outline-none focus:ring-2 focus:ring-[#183D3D]/30" />
+                    @error('email')
+                        <p class="text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- Password -->
+                <div class="space-y-1">
+                    <label class="text-sm font-medium text-slate-600">Password</label>
+                    <input type="password" wire:model="password"
+                        class="w-full rounded-md border border-slate-300 bg-white px-3 py-2
+                       focus:outline-none focus:ring-2 focus:ring-[#183D3D]/30" />
+                    @error('password')
+                        <p class="text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- Confirm Password -->
+                <div class="space-y-1">
+                    <label class="text-sm font-medium text-slate-600">Confirm Password</label>
+                    <input type="password" wire:model="confirmPassword"
+                        class="w-full rounded-md border border-slate-300 bg-white px-3 py-2
+                       focus:outline-none focus:ring-2 focus:ring-[#183D3D]/30" />
+                    @error('confirmPassword')
+                        <p class="text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- Role -->
+                <div class="space-y-1">
+                    <label class="text-sm font-medium text-slate-600">Role</label>
+                    <select wire:model="roleInput"
+                        class="w-full rounded-md border border-slate-300 bg-white px-3 py-2
+                       focus:outline-none focus:ring-2 focus:ring-[#183D3D]/30">
+                        <option value="USER">User</option>
+                        <option value="ADMIN">Admin</option>
+                    </select>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex justify-end gap-3 pt-2">
+
+                    <button type="button" wire:click="closeCreateModal"
+                        class="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm
+                       text-slate-700 hover:bg-slate-50">
+                        Cancel
+                    </button>
+
+                    <button wire:click="createUser" wire:loading.attr="disabled" wire:target="createUser"
+                        class="rounded-md bg-[#183D3D] px-4 py-2 text-sm font-medium text-white
+                       transition hover:bg-[#145252] disabled:opacity-60">
+
+                        <span wire:loading.remove wire:target="createUser">Create User</span>
+                        <span wire:loading wire:target="createUser">Creating...</span>
                     </button>
 
                 </div>

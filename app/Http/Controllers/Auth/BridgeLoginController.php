@@ -87,7 +87,8 @@ class BridgeLoginController extends Controller
                 [
                     'token_id' => $accessToken->id,
                     'user_role' => $user->role,
-                ]
+                ],
+                $user->id
             );
 
             abort(403);
