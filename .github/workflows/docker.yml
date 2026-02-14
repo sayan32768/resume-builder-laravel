@@ -27,5 +27,8 @@ jobs:
           context: .
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/resume-builder-laravel:v1
+            ${{ secrets.DOCKERHUB_USERNAME }}/resume-builder-laravel:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/resume-builder-laravel:${{ github.sha }}
+
+      - name: Trigger Render Deploy
+        run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
